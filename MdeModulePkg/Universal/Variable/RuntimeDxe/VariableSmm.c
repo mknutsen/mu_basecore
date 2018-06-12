@@ -31,6 +31,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Protocol/SmmFaultTolerantWrite.h>
 #include <Protocol/MmEndOfDxe.h>
 #include <Protocol/SmmVarCheck.h>
+#include <Protocol/VariableFilter.h>      // MS_CHANGE_197781
 
 #include <Library/MmServicesTableLib.h>
 
@@ -40,6 +41,10 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 BOOLEAN                                              mAtRuntime              = FALSE;
 UINT8                                                *mVariableBufferPayload = NULL;
 UINTN                                                mVariableBufferPayloadSize;
+// MS_CHANGE_197781
+EFI_VARIABLE_FILTER_PROTOCOL                         mVariableFilterProtocol;
+extern EFI_VARIABLE_FILTER_INTERFACE*                mVariableFilter;
+// END
 
 /**
   SecureBoot Hook for SetVariable.
@@ -722,16 +727,20 @@ SmmVariableHandler (
       break;
 
     case SMM_VARIABLE_FUNCTION_LOCK_VARIABLE:
-      if (mEndOfDxe) {
-        Status = EFI_ACCESS_DENIED;
-      } else {
+      // MS_CHANGE_90369
+      // MSChange [BEGIN] - Don't block these requests outright after EndOfDxe.
+      // Give the library a chance to evaluate which requests should be allowed.
+      // if (mEndOfDxe) {
+        // Status = EFI_ACCESS_DENIED;
+      // } else {
         VariableToLock = (SMM_VARIABLE_COMMUNICATE_LOCK_VARIABLE *) SmmVariableFunctionHeader->Data;
         Status = VariableLockRequestToLock (
                    NULL,
                    VariableToLock->Name,
                    &VariableToLock->Guid
                    );
-      }
+      // }
+      // MSChange [END]
       break;
     case SMM_VARIABLE_FUNCTION_VAR_CHECK_VARIABLE_PROPERTY_SET:
       if (mEndOfDxe) {
@@ -933,6 +942,60 @@ SmmFtwNotificationEvent (
   return EFI_SUCCESS;
 }
 
+// MS_CHANGE_197781
+/**
+  Sets a filter that variable services calls when conditions are satisfied.
+
+  @param[in] Filter         Supplies a pointer to the interface structure.
+
+  @retval EFI_SUCCESS       Variable filter successfully set. 
+  @retval EFI_UNSUPPORTED   Variable filter has already been set.
+  @retval EFI_INVALID_PARAMETER if the supplied Filter is not initialized correctly.
+  @retval EFI_OUT_OF_RESOURCES if required memory cannot be allocated.
+
+**/
+EFI_STATUS
+EFIAPI
+VariableServiceSetVariableFilter (
+  IN EFI_VARIABLE_FILTER_INTERFACE* Filter
+  )
+{
+
+  EFI_STATUS Status;
+
+  DEBUG((DEBUG_INFO, __FUNCTION__ ": enter... Filter:0x%p\n", Filter));
+
+  AcquireLockOnlyAtBootTime(&mVariableModuleGlobal->VariableGlobal.VariableServicesLock);
+
+  if (Filter == NULL) {
+    Status = EFI_INVALID_PARAMETER;
+    goto Cleanup;
+  }
+
+  if (Filter->FilterGetVariable == NULL || Filter->FilterSetVariable == NULL) {
+    Status = EFI_INVALID_PARAMETER;
+    goto Cleanup;
+  }
+
+  if (mVariableFilter != NULL) {
+    Status = EFI_UNSUPPORTED;
+    goto Cleanup;
+  }
+
+  mVariableFilter = AllocatePool(sizeof(*mVariableFilter));
+  if (mVariableFilter == NULL) {
+    Status = EFI_OUT_OF_RESOURCES;
+    goto Cleanup;
+  }
+
+  CopyMem(mVariableFilter, Filter, sizeof(*mVariableFilter));
+  Status = EFI_SUCCESS;
+
+Cleanup:
+  ReleaseLockOnlyAtBootTime(&mVariableModuleGlobal->VariableGlobal.VariableServicesLock);
+  return Status;
+}
+// END
 
 /**
   Variable Driver main entry point. The Variable driver places the 4 EFI
@@ -996,6 +1059,24 @@ MmVariableServiceInitialize (
   VariableHandle = NULL;
   Status = gMmst->MmiHandlerRegister (SmmVariableHandler, &gEfiSmmVariableProtocolGuid, &VariableHandle);
   ASSERT_EFI_ERROR (Status);
+
+// MS_CHANGE_197781
+  //
+  // Install the Variable Filter protocol on a new handle. Continue on if
+  // this fails.
+  //
+  mVariableFilterProtocol.SetVariableFilter = VariableServiceSetVariableFilter;
+  Status = gSmst->SmmInstallProtocolInterface (
+                                        &mVariableHandle,
+                                        &gEfiVariableFilterProtocolGuid,
+                                        EFI_NATIVE_INTERFACE,
+                                        &mVariableFilterProtocol
+                                        );
+  
+  if (EFI_ERROR(Status) != FALSE) {
+    DEBUG((DEBUG_INFO, __FUNCTION__ ": failed to install variable filter protocol (%r)\n", Status));
+  }
+// END
 
   //
   // Notify the variable wrapper driver the variable service is ready
