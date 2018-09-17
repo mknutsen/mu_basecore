@@ -58,6 +58,7 @@ from UefiBuild import UefiBuilder
 import Tests.BaseTestLib
 from Tests.XmlArtifact import XmlOutput
 import SelfDescribingEnvironment
+import argparse
 try:
     from StringIO import StringIO
 except ImportError:
@@ -299,6 +300,27 @@ def main(my_workspace_path, my_project_scope):
 
     ws = my_workspace_path
     pp = my_workspace_path
+    bp = my_workspace_path
+
+
+    PKG_PATH = ws
+    parser = argparse.ArgumentParser()
+    parser.add_argument (
+    '-p', '--pkg','--pkg-dir', dest = 'WorkSpace', required = False, type=str,
+    help = '''Specify the absolute path to your workspace by passing -w WORKSPACE or --workspace WORKSPACE.'''
+    )
+    programArg0 = sys.argv[0]
+    args, sys.argv = parser.parse_known_args() #consume the arguments we care about and then set the remaining arguments back to argv
+    sys.argv.insert(0, programArg0)
+    if args.WorkSpace:
+
+        # pre-process the parsed paths to abspath
+        args.WorkSpace = os.path.abspath(args.WorkSpace)
+        if os.path.isfile(args.WorkSpace):
+            args.WorkSpace =  os.path.dirname(args.WorkSpace)
+        if not os.path.isdir(args.WorkSpace):
+            raise RuntimeError("Workspace path is invalid.")
+        PKG_PATH= args.WorkSpace
 
     # Make sure that we have a clean environment.
     if os.path.isdir(os.path.join(ws, "Build", "BuildLogs")):
@@ -454,7 +476,7 @@ def main(my_workspace_path, my_project_scope):
         #Find all DSC files
         logging.critical("Walking " + ws + " for DSC files")
         DSCFiles = list()
-        for Root, Dirs, Files in os.walk(ws):
+        for Root, Dirs, Files in os.walk(PKG_PATH):
             for File in Files:
                 if File.lower().endswith('.dsc'):
                     if(File.lower() in IgnoreList):

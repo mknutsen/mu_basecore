@@ -11,8 +11,10 @@ import logging
 #==========================================================================
 # PLATFORM BUILD ENVIRONMENT CONFIGURATION
 #
-SCRIPT_PATH = os.path.dirname(os.path.abspath(__file__))
+SCRIPT_PATH = os.path.dirname(os.path.abspath(__file__)) 
 WORKSPACE_PATH = os.path.dirname(os.path.dirname(SCRIPT_PATH))
+BASECORE_PATH = os.path.dirname(os.path.dirname(SCRIPT_PATH))
+PKG_PATH = os.path.dirname(os.path.dirname(SCRIPT_PATH))
 PROJECT_SCOPE = ('corebuild',)
 
 # MODULE_PKGS = ('SM_UDK', "SM_UDK_INTERNAL", "SURF_KBL", "SM_INTEL_KBL")
@@ -31,7 +33,7 @@ if __name__ == '__main__':
     CommonBuildEntry.configure_base_logging('verbose')
 
     # Bring up the common minimum environment.
-    CommonBuildEntry.update_process(WORKSPACE_PATH, PROJECT_SCOPE)
+    CommonBuildEntry.update_process(BASECORE_PATH, PROJECT_SCOPE)
 
     # Now that we've got the environment updated, we can bring in the worker.
     import PlatformBuildWorker
