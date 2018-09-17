@@ -269,6 +269,95 @@ class Summary():
 def RunPlatformTests(test_list, workpath, packagepath, ignore_list = None):
     pass
 
+##
+# Walks until it finds a .dependencies and generates a list of packages we need to find
+# returns an empty array if it can't find anything
+##
+def GenerateModulesDependencies(ws):
+    modules = []
+
+    currentDir = ws
+    if os.path.isfile(currentDir):
+        currentDir = os.path.dirname(currentDir)
+
+    # make sure we add the module that we are currently in
+    #TODO: use git toplevel instead?
+    #WARNING: this uses the assumption that it will be named SM_ something
+    findSMRoot = currentDir
+
+    while not os.path.basename(findSMRoot).startswith("SM_"):
+        findSMRoot = os.path.dirname(findSMRoot)
+        #logging.critical("Scanning for git folder: %s"%os.path.basename(findSMRoot)[0:2])
+        if os.path.dirname(findSMRoot) == findSMRoot:
+           break
+    
+    if not os.path.dirname(findSMRoot) == findSMRoot:
+        modules.append(findSMRoot)
+
+    while not os.path.isfile(os.path.join(currentDir,".depends")):
+        currentDir = os.path.dirname(currentDir)
+        #logging.critical("Scanning Dependency file: %s"%currentDir)
+        if os.path.dirname(currentDir) == currentDir:
+            return modules
+    
+    #we have our currentDir -> read in the dependencies
+    logging.info("Loading Module Dependency file: %s"%currentDir)
+
+    dependencies = ReadDependencyFile(os.path.join(currentDir,".depends"))
+
+    #find the folder of each module that our dependency file specified
+    for module in dependencies:
+        path = FindModule(ws,module["name"],module["url"])
+        if path is None:
+            logging.critical("Unable to find: %s" % module)
+            #TODO clone the correct repo if we can't find it
+        else:
+            modules.append(path)
+    return modules
+
+##
+# reads the .depends files. An example of the file format
+#[Common/SM_MU_TIANO_PLUS]
+#	url = https://github.com/Microsoft/mu_tiano_plus.git
+#    branch = release/20180529
+#    commit = 5d4a51b4a8d20e5ff1f75adeb969697b1cc201cb
+##
+def ReadDependencyFile(file):
+    try:
+        file = open(file,'r')
+        line = file.readline()
+        modules = []        
+        while not line == "":
+            line = line.strip()
+            if line[0] == '[':                
+                modules.insert(0,{"name":line[1:-1]})
+            elif "=" in line:
+                defines = line.split("=")
+                key = defines[0].strip()
+                value = defines[1].strip()
+                modules[0][key] = value #insert into the 
+            else:
+                logging.warn("Malformatted line in dependency file: %s" % line )
+            line = file.readline() #read in a new file
+        
+        return modules
+    except IOError as e:
+        logging.critical("Unable to open file %s" % infFile)
+        return []
+
+##
+# finds the module requested from the workspace- walking up
+def FindModule(ws,module,url):
+    currentDir = ws
+    if os.path.isfile(currentDir):
+        currentDir = os.path.dirname(currentDir)
+
+    while not os.path.isdir(os.path.join(currentDir,module)):
+        currentDir = os.path.dirname(currentDir)
+        if os.path.dirname(currentDir) == currentDir:
+            return None
+    return os.path.join(currentDir,module)
+
 
 ##
 # Add a filehandler to the current logger
@@ -483,7 +572,7 @@ def main(my_workspace_path, my_project_scope):
                         logging.debug("%s - Ignored" % File)
                         continue
                     logging.critical(os.path.join(Root, File))
-                    DSCFiles.append(os.path.join(Root, File)[len(ws)+1:])
+                    DSCFiles.append(os.path.join(Root, File))
 
 
         for File in DSCFiles:
@@ -497,11 +586,19 @@ def main(my_workspace_path, my_project_scope):
             temp_argv = copy.copy(sys.argv)
             temp_argv.append("ACTIVE_PLATFORM="+File)
 
+            # Generate the packages that we need to include
+            MODULE_PACKAGES = GenerateModulesDependencies(File)
+            MODULE_PACKAGES.append(pp)
+
+            module_pkg_paths = ";".join(pkg_name for pkg_name in MODULE_PACKAGES)
+            logging.critical(MODULE_PACKAGES)
+
             # Override the global build vars so each is local to the builder.
             local_build_vars = copy.copy(shell_env.build_var_dict)
 
+
             #Build Platform
-            PB = PlatformBuilder(ws, pp, build_env.plugins, temp_argv, IgnoreList, local_build_vars)
+            PB = PlatformBuilder(ws, module_pkg_paths, build_env.plugins, temp_argv, IgnoreList, local_build_vars)
             starttime = time.time()
             retcode = PB.Go()
             if not "--skipbuild" in str(sys.argv).lower():
@@ -569,8 +666,8 @@ def main(my_workspace_path, my_project_scope):
     # Conditionally launch the shell to show build log
     #
     #
-    if( ((overall_success == False) and (LogOnError.upper() == "TRUE")) or (LogOnSuccess.upper() == "TRUE")):
-        subprocess.Popen(cmd, shell=True)
+   # if( ((overall_success == False) and (LogOnError.upper() == "TRUE")) or (LogOnSuccess.upper() == "TRUE")):
+        #subprocess.Popen(cmd, shell=True)
     
     if overall_success:
         sys.exit(0)
