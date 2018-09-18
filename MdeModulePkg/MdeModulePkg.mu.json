@@ -1,0 +1,16 @@
+{
+    //Allowed packages for resolving dependencies
+    "Dependencies": [
+        "MdePkg",
+        "MsUnitTestPkg"
+    ],
+    "Scopes": [],
+    "CompileTest": {
+        "IgnoreInf": []
+        
+    }, 
+
+    "DependencyTest": {
+        "IgnoreInf": []
+    }
+}
