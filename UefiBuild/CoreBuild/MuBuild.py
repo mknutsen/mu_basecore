@@ -49,24 +49,30 @@ if __name__ == '__main__':
     REPO_MU_JSON = None
     if len(sys.argv) < 2:
         files = glob.glob("*.mu.json")
-        if(len(files) == 1):
+        if(len(files) >= 1):
             REPO_MU_JSON = os.path.abspath(files[0])
+        else:
+            print("No mu.json files found")
     else:
         REPO_MU_JSON = os.path.abspath(sys.argv[1])
         del sys.argv[1]
 
-    if(not os.path.isfile(REPO_MU_JSON)):
-        raise Exception("Invalid path to <Repo>.mu.json file for build.")
+    if REPO_MU_JSON is None or not os.path.isfile(REPO_MU_JSON):
+        raise Exception("Invalid path to <Repo>.mu.json file for build: %s", REPO_MU_JSON)
     
     #have a config file
     RepoConfig = json.loads(strip_json_from_file(REPO_MU_JSON))
     WORKSPACE_PATH = os.path.realpath(os.path.join(os.path.dirname(REPO_MU_JSON), RepoConfig["RelativeWorkspaceRoot"]))
     PROJECT_SCOPE = tuple(RepoConfig["Scopes"])
     print("Running ProjectMu Build: ", RepoConfig["Name"])
+    print("WorkSpace: ", WORKSPACE_PATH)
+
 
     #Allow repo config to override
     if(RepoConfig.get("BaseCorePath") is not None):
-        PROJECT_MU_UEFI_BUILD_PATH = os.path.join(RepoConfig["BaseCorePath"], "UefiBuild")
+        PROJECT_MU_UEFI_BUILD_PATH = os.path.join(WORKSPACE_PATH,RepoConfig["BaseCorePath"], "UefiBuild")
+
+    print("Basecore: ", PROJECT_MU_UEFI_BUILD_PATH)
 
 
     # Include the most basic paths so that we can get to known build components.
