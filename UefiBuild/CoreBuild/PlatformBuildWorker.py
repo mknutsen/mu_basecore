@@ -563,16 +563,19 @@ def main(my_workspace_path, my_project_scope):
     #Unless they are specified in ignore file
     else:
         #Find all DSC files
-        logging.critical("Walking " + ws + " for DSC files")
+        logging.critical("Walking " + ws + " for DSC/JSON files")
         DSCFiles = list()
         for Root, Dirs, Files in os.walk(PKG_PATH):
             for File in Files:
                 if File.lower().endswith('.dsc'):
                     if(File.lower() in IgnoreList):
                         logging.debug("%s - Ignored" % File)
-                        continue
-                    logging.critical(os.path.join(Root, File))
+                        continue                    
                     DSCFiles.append(os.path.join(Root, File))
+                if File.lower().endswith('.mu.json'):
+                    fileWoExtension = os.path.splitext(os.path.basename(str(File)))[0]
+                    dscFile = os.path.join(Root, fileWoExtension+ ".temp.dsc")
+                    DSCFiles.append(dscFile)
 
 
         for File in DSCFiles:
@@ -620,6 +623,9 @@ def main(my_workspace_path, my_project_scope):
             else:
                 xml_artifact.add_skipped("Compilation", "Compilation " + os.path.basename(File) + " " + PB.env.GetValue("TARGET"), "Compilation." + os.path.basename(File), 0, "Compilation Skipped")
 
+            if File.lower().endswith(".temp.dsc"):
+                logging.critical("We need to delete the temp.dsc file")
+                os.remove(File)
             #Run Tests
             retcode = PB.RunTests(Test_List, summary_log, xml_artifact)
             if(retcode != 0):
