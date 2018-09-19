@@ -391,7 +391,6 @@ def main(my_workspace_path, my_project_scope):
     pp = my_workspace_path
     bp = my_workspace_path
 
-
     PKG_PATH = ws
     parser = argparse.ArgumentParser()
     parser.add_argument (
@@ -575,6 +574,8 @@ def main(my_workspace_path, my_project_scope):
                 if File.lower().endswith('.mu.json'):
                     fileWoExtension = os.path.splitext(os.path.basename(str(File)))[0]
                     dscFile = os.path.join(Root, fileWoExtension+ ".temp.dsc")
+                    from generateDSC import JsonToDSCGenerator 
+                    JsonToDSCGenerator(os.path.join(Root,File)).write(dscFile)
                     DSCFiles.append(dscFile)
 
 
@@ -624,8 +625,8 @@ def main(my_workspace_path, my_project_scope):
                 xml_artifact.add_skipped("Compilation", "Compilation " + os.path.basename(File) + " " + PB.env.GetValue("TARGET"), "Compilation." + os.path.basename(File), 0, "Compilation Skipped")
 
             if File.lower().endswith(".temp.dsc"):
-                logging.critical("We need to delete the temp.dsc file")
-                os.remove(File)
+                logging.info("Deleting the temp.dsc file %s" % File)
+                #os.remove(File)
             #Run Tests
             retcode = PB.RunTests(Test_List, summary_log, xml_artifact)
             if(retcode != 0):

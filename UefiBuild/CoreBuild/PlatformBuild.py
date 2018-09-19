@@ -26,7 +26,8 @@ PROJECT_SCOPE = ('corebuild',)
 # Smallest 'main' possible. Please don't add unnecessary code.
 if __name__ == '__main__':
     # Include the most basic paths so that we can get to known build components.
-    sys.path.append(os.path.join(WORKSPACE_PATH, 'UefiBuild'))
+    sys.path.append(os.path.join(BASECORE_PATH, 'UefiBuild'))
+    sys.path.append(os.path.join(BASECORE_PATH, 'BaseTools','PythonLibrary','CoreBuild'))
     import CommonBuildEntry
 
     # Make sure that we can get some logging out.

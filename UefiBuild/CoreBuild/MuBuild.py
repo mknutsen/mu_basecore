@@ -18,9 +18,11 @@ PROJECT_MU_UEFI_BUILD_PATH = os.path.join("SM_BASECORE", "UefiBuild")
 #
 SCRIPT_PATH = os.path.dirname(os.path.abspath(__file__)) 
 #WORKSPACE_PATH = os.path.dirname(os.path.dirname(SCRIPT_PATH))
-#BASECORE_PATH = os.path.dirname(os.path.dirname(SCRIPT_PATH))
+BASECORE_PATH = os.path.dirname(os.path.dirname(SCRIPT_PATH)) # we assume that we are in UefiBuild/CoreBuild and that SM_BASECORE has been cloned in it's entirety?
 #PKG_PATH = os.path.dirname(os.path.dirname(SCRIPT_PATH))
 #PROJECT_SCOPE = ('corebuild',)
+
+sys.path.append(os.path.join(BASECORE_PATH, 'UefiBuild'))
 
 # MODULE_PKGS = ('SM_UDK', "SM_UDK_INTERNAL", "SURF_KBL", "SM_INTEL_KBL")
 # MODULE_PKG_PATHS = ";".join(os.path.join(WORKSPACE_PATH, pkg_name) for pkg_name in MODULE_PKGS)

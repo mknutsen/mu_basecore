@@ -1,8 +1,9 @@
 {
     "Name": "Project Mu BaseCore Repo CI Build",
     //Workspace path relative to this file
-    "RelativeWorkspaceRoot": "..",
-    "BaseCorePath": "SM_MU_BASECORE",
+    "RelativeWorkspaceRoot": "",
+    //BASECORE path relative to root
+    "BaseCorePath": "",
     "Scopes": ["basecore", "corebuild"],
     "CompileTest": {
         "AdditionalDefines": []
