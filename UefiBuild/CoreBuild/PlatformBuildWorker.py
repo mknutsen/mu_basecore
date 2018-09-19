@@ -567,14 +567,14 @@ def main(my_workspace_path, my_project_scope):
         for Root, Dirs, Files in os.walk(PKG_PATH):
             for File in Files:
                 if File.lower().endswith('.dsc'):
-                    if(File.lower() in IgnoreList):
+                    if(File.lower() in IgnoreList) or File.lower().endswith(".temp.dsc"):
                         logging.debug("%s - Ignored" % File)
                         continue                    
                     DSCFiles.append(os.path.join(Root, File))
                 if File.lower().endswith('.mu.json'):
                     fileWoExtension = os.path.splitext(os.path.basename(str(File)))[0]
                     dscFile = os.path.join(Root, fileWoExtension+ ".temp.dsc")
-                    from generateDSC import JsonToDSCGenerator 
+                    from GenerateDSC import JsonToDSCGenerator 
                     JsonToDSCGenerator(os.path.join(Root,File)).write(dscFile)
                     DSCFiles.append(dscFile)
 

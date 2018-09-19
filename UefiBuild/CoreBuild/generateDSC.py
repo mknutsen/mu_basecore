@@ -1,5 +1,6 @@
 ##
 # Generates the DSC based on a particular JSON file
+#TODO move into DSCObject?
 ##
 import logging
 import os, sys
@@ -22,12 +23,24 @@ class JsonToDSCGenerator:
         logging.critical(jsonData)
         self._dsc = Dsc()
         
+        #turn the JSON data into the DSC
         for key in jsonData:
             matchkey = key.lower().strip()
             if matchkey == "defines":
                 for defineKey in jsonData[key]:
                     value = jsonData[key][defineKey]
-                    self._dsc.UpdateOrCreateValue("Defines",defineKey,value,jsonFile)        
+                    self._dsc.UpdateOrCreateValue("Defines",defineKey,value,jsonFile)
+        
+        # walk the directory looking for infs
+        infDir = os.path.dirname(jsonFile)
+        logging.critical("Walking %s for inf Files" % infDir)
+        for Root, Dirs, Files in os.walk(infDir):
+            for File in Files:
+                if File.lower().endswith('.inf'):
+                    #TODO read inf
+                    logging.info("Found inf: %s" % File)
+
+        
 
     def write(self,outputFile):
         ## writes the output file
