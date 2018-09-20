@@ -66,6 +66,7 @@ except ImportError:
 
 logfile = None
 loghandle = None
+TEMP_MODULE_DIR = "temp_modules"
 
 #--------------------------------------------------------------------------------------------------------
 # Subclass the UEFI builder and add platform specific functionality.  
@@ -273,10 +274,15 @@ def RunPlatformTests(test_list, workpath, packagepath, ignore_list = None):
 # Walks until it finds a .dependencies and generates a list of packages we need to find
 # returns an empty array if it can't find anything
 ##
-def GenerateModulesDependencies(ws):
-    modules = []
+def GenerateModulesDependencies(module, workspace = None):
 
-    currentDir = ws
+    global ws
+    if workspace is None:
+        workspace = ws
+
+    modules = []
+    
+    currentDir = module
     if os.path.isfile(currentDir):
         currentDir = os.path.dirname(currentDir)
 
@@ -309,9 +315,11 @@ def GenerateModulesDependencies(ws):
     for module in dependencies:
         path = FindModule(ws,module["name"],module["url"])
         if path is None:
-            logging.critical("Unable to find: %s" % module)
-            #TODO clone the correct repo if we can't find it
-        else:
+            logging.info("Unable to find: %s. Cloning " % module)
+            path = CloneModule(ws,module["name"],module["url"], module["branch"], module["commit"])
+        if path is None:
+            logging.critical("Unable to find: %s. Cloning failed " % module)
+        else:#we found the path
             modules.append(path)
     return modules
 
@@ -323,6 +331,7 @@ def GenerateModulesDependencies(ws):
 #    commit = 5d4a51b4a8d20e5ff1f75adeb969697b1cc201cb
 ##
 def ReadDependencyFile(file):
+    
     try:
         file = open(file,'r')
         line = file.readline()
@@ -346,18 +355,33 @@ def ReadDependencyFile(file):
         return []
 
 ##
-# finds the module requested from the workspace- walking up
-def FindModule(ws,module,url):
+# finds the module requested from the workspace- we assume that it is here at some point
+def FindModule(ws,module, url):
     currentDir = ws
     if os.path.isfile(currentDir):
         currentDir = os.path.dirname(currentDir)
+    for Root, Dirs, Files in os.walk(ws):
+        #look for the directory module if we don't find it, we clone it
+        for directory in Dirs: 
+            #todo read the git information in the directory we find and make sure it matches the URL we find
+            if directory == module:
+                return os.path.join(Root,directory)
+            #logging.info(os.path.join(Root,directory))
 
-    while not os.path.isdir(os.path.join(currentDir,module)):
-        currentDir = os.path.dirname(currentDir)
-        if os.path.dirname(currentDir) == currentDir:
-            return None
-    return os.path.join(currentDir,module)
+    return None
+    
 
+def CloneModule(ws,module, url, branch, commit):
+    tempdir = os.path.join(ws,TEMP_MODULE_DIR)
+    if not os.path.isdir(tempdir):
+        os.mkdir(tempdir)
+    dest = os.path.join(tempdir,module)
+    
+    cmd = "git clone --depth 1 --shallow-submodules --recurse-submodules -b %s %s %s " % (branch, url, dest)
+    logging.info("Cloning into %s" % dest)
+    p = subprocess.Popen(cmd, shell=True)
+    p.wait()
+    return dest
 
 ##
 # Add a filehandler to the current logger
@@ -514,6 +538,8 @@ def main(my_workspace_path, my_project_scope):
     logging.info("Log Started: " + datetime.strftime(datetime.now(), "%A, %B %d, %Y %I:%M%p" ))
     logging.info("Running Python version: " + str(sys.version_info))
 
+    PB = None
+
     #If Active Platform is defined no need to walk ws for DSC files
     if("active_platform" in str(sys.argv).lower()):
         #Get Filename Suffix
@@ -571,16 +597,19 @@ def main(my_workspace_path, my_project_scope):
                         logging.debug("%s - Ignored" % File)
                         continue                    
                     DSCFiles.append(os.path.join(Root, File))
-                if File.lower().endswith('.mu.json'):
+                if File.lower().endswith('.mu.json'): #temporarily turned off
                     fileWoExtension = os.path.splitext(os.path.basename(str(File)))[0]
                     dscFile = os.path.join(Root, fileWoExtension+ ".temp.dsc")
                     from GenerateDSC import JsonToDSCGenerator 
                     JsonToDSCGenerator(os.path.join(Root,File)).write(dscFile)
-                    DSCFiles.append(dscFile)
+                    #DSCFiles.append(dscFile)
+                
 
 
         for File in DSCFiles:
             File_Suffix = os.path.splitext(os.path.basename(str(File)))[0]
+            if os.path.isfile(os.path.join(os.path.dirname(File), File_Suffix+".mu.json")):
+                logging.critical("We have a json file to check")
             (logfile, loghandle) = SetLogFile("BUILDLOG_" + File_Suffix + ".txt", loghandle)
             logging.critical("\n\n====================================================================================================================================\n")
             logging.critical("Building " + File)
@@ -591,7 +620,7 @@ def main(my_workspace_path, my_project_scope):
             temp_argv.append("ACTIVE_PLATFORM="+File)
 
             # Generate the packages that we need to include
-            MODULE_PACKAGES = GenerateModulesDependencies(File)
+            MODULE_PACKAGES = GenerateModulesDependencies(File, ws)
             MODULE_PACKAGES.append(pp)
 
             module_pkg_paths = ";".join(pkg_name for pkg_name in MODULE_PACKAGES)
@@ -603,6 +632,7 @@ def main(my_workspace_path, my_project_scope):
 
             #Build Platform
             PB = PlatformBuilder(ws, module_pkg_paths, build_env.plugins, temp_argv, IgnoreList, local_build_vars)
+            logging.critical("PB DEFINED")
             starttime = time.time()
             retcode = PB.Go()
             if not "--skipbuild" in str(sys.argv).lower():
@@ -627,6 +657,26 @@ def main(my_workspace_path, my_project_scope):
             if File.lower().endswith(".temp.dsc"):
                 logging.info("Deleting the temp.dsc file %s" % File)
                 #os.remove(File)
+            
+            CLONE_PATH = os.path.join(ws,TEMP_MODULE_DIR)
+            logging.critical("Deleting the cloned module file %s" % CLONE_PATH)
+            SHOULD_DELETE_CLONED_MODULES = False
+            if SHOULD_DELETE_CLONED_MODULES:
+                retry = 3 
+                while retry > 0:
+                    try:
+                        shutil.rmtree(CLONE_PATH, ignore_errors=True) 
+                    except OSError:
+                        if not retry:
+                        # If we're out of retries, bail.
+                            raise
+                        time.sleep(5)
+                        retry -= 1
+                        continue
+                    break
+
+                
+               
             #Run Tests
             retcode = PB.RunTests(Test_List, summary_log, xml_artifact)
             if(retcode != 0):
@@ -656,11 +706,17 @@ def main(my_workspace_path, my_project_scope):
     summary_log.PrintStatus(loghandle)
     xml_artifact.write_file(os.path.join(ws, "Build", "BuildLogs", "TestSuites.xml"))
 
-    #get all vars needed as we can't do any logging after shutdown otherwise our log is cleared.  
-    #Log viewer
-    ep = PB.env.GetValue("LaunchBuildLogProgram")
-    LogOnSuccess = PB.env.GetValue("LaunchLogOnSuccess")
-    LogOnError = PB.env.GetValue("LaunchLogOnError")
+    ep = None
+
+    if PB is not None:
+        # we never executed any DSC's or found anything    
+        #get all vars needed as we can't do any logging after shutdown otherwise our log is cleared.  
+        #Log viewer
+        ep = PB.env.GetValue("LaunchBuildLogProgram")
+        LogOnSuccess = PB.env.GetValue("LaunchLogOnSuccess")
+        LogOnError = PB.env.GetValue("LaunchLogOnError")
+    else:
+        logging.critical("No modules were built")
     
     #end logging
     logging.shutdown()

@@ -46,4 +46,6 @@ class JsonToDSCGenerator:
         ## writes the output file
         logging.critical("Generating the file")
         with open(outputFile, 'w') as f:  
+            #TODO: generate hash code of MD5's so we can determine if we need to rewrite this? But then we already generated it?
+            #TODO: how do we invalidate the previous temp.dsc?
             self._dsc.Write(f)
