@@ -4,34 +4,8 @@ import re
 import os
 import collections
 from operator import itemgetter, attrgetter
+from DscProcessor import EnumDscPluginScopeLevel
 
-#TODO rewrite this to be more friendly
-
-from enum import Enum
-#Maybe like default -> silicon provider -> silicon family -> OEM -> device
-class DscScopeLevel(Enum):
-    default = 1
-    silicon = 2
-    silicon_family = 3
-    oem = 4
-    device = 5
-
-    def __ge__(self, other):
-        if self.__class__ is other.__class__:
-            return self.value >= other.value
-        return NotImplemented
-    def __gt__(self, other):
-        if self.__class__ is other.__class__:
-            return self.value > other.value
-        return NotImplemented
-    def __le__(self, other):
-        if self.__class__ is other.__class__:
-            return self.value <= other.value
-        return NotImplemented
-    def __lt__(self, other):
-        if self.__class__ is other.__class__:
-            return self.value < other.value
-        return NotImplemented
 
 class DscValue(object):
     def __init__(self, newValue, history, scope):
@@ -85,11 +59,9 @@ class DscValue(object):
 #
 
 class DscSection(object):
-    def __init__(self):        
-        self._default = "__defines"
-        self.__defines = {}
-        self._name = "DEFAULT_NAME"
-        self._seperator = "="
+    def __init__(self, dscparser):
+        self._defines = {}
+        self._default = "_defines"
     
    
     def Get(self, key):
@@ -125,94 +97,155 @@ class DscSection(object):
         else:
             return str(store[key].History())
 
-    def Update(self, key, value, history, scope=DscScopeLevel.default):
+    def Update(self, key, value, history, scope=EnumDscPluginScopeLevel.default):
         store = getattr(self,self._default)
         if (key not in store):
             store[key] = DscValue(value,history, scope)
         else:
             store[key].set(value, history, scope)
 
-    def WriteDefines(self,stream):
-        #Global defines may be used in FDF, so print them here.
-        for k in sorted(self.__defines):
+    def Write(self, stream):
+        for k in sorted(self._defines):
             stream.write("%s\n" % (self.GetHistory(k)))
             if (self.Get(k) is None):
                 stream.write("#")    
             stream.write("    DEFINE %s = %s\n" % (k, self.Get(k)))
 
-    def Parse(self,parser):
+#[Defines] section parser class.
+class DscDefines(DscSection):
+    def __init__(self, dscparser):
+        super().__init__(dscparser)
+        self.parser = dscparser
+        self.globals = {}
+        self._default = "globals"
+
+    def Parse(self):
         while(True):
-            (eof, line) = parser.nextLine()
+            (eof, line) = self.parser.nextLine()
             if (eof):
                 break
             
             #At this point we should have a define element. It's either a macro (prefixed with "DEFINE") or a variable.
             #treat them the same, but if it is a DEFINE, normalize the whitespace between the DEFINE and the variable name to a single space.
-            tokens = line.split(self._seperator)
-            if len(tokens) != 2:
-                logging.critical("ERROR IN DSC PARSER: Unknown line %s" % line)
-            else:
-                key = " ".join(tokens[0].strip().split())
-                value = tokens[1].strip()
-                self.Update(key,value,parser.GetSource())
+            tokens = line.split('=')
+            key = " ".join(tokens[0].strip().split())
+            value = tokens[1].strip()
+            self.Update(key,value,self.parser.GetSource())
 
     def Write(self, stream):
-        stream.write("[%s]\n" % self._name)
-        self.WriteDefines(stream)
-        for k in sorted(self.GetKeys()):
+        stream.write("[Defines]\n")
+        #Global defines may be used in FDF, so print them here.
+        super().Write(stream)
+        for k in sorted(self.globals):
             stream.write("%s\n" % (self.GetHistory(k)))
             if (self.Get(k) is None):
                 stream.write("#")
-            stream.write("    %s%s%s\n" % (k, self._seperator,self.Get(k)))
+            stream.write("    %s = %s\n" % (k, self.Get(k)))
         stream.write("\n")
 
-#[Defines] section parser class.
-class DscDefines(DscSection):
-    def __init__(self):
-        super().__init__()
-        self.globals = {}
-        self._default = "globals"
-        self._name = "Defines"
-    
 #[SkuIds] section parser class
 class DscSkus(DscSection):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, dscparser):
+        super().__init__(dscparser)
         self.skus = {}
+        self.parser = dscparser
         self._default = "skus"
-        self._name = "Skus"
-    
+
+    def Parse(self):
+        while(True):
+            (eof, line) = self.parser.nextLine()
+            if (eof):
+                break
+            
+            #At this point we should have a SKU elememt. Split on the pipe and store it. 
+            tokens = line.split('|')
+            key = tokens[0].strip()
+            value = tokens[1].strip()
+            self.Update(key,value,self.parser.GetSource())
+
+    def Write(self, stream):
+        stream.write("[SkuIds]\n")
+        for k in self.skus:
+            stream.write("%s\n" % (self.GetHistory(k)))
+            if (self.Get(k) is None):
+                stream.write("#")
+            stream.write("    %s|%s\n" %(k, self.Get(k)))
+        stream.write("\n")
+
 #[LibraryClasses] section parser class. Handles subsections (e.g. LibraryClasses.IA32) as well.
 class DscLibraryClasses(DscSection):
-    def __init__(self, subsection=""):
-        super().__init__()
+    def __init__(self, dscparser, subsection):
+        super().__init__(dscparser)
         self._libclasses = {}
+        self.parser = dscparser
         self.subsection = subsection
         self._default = "_libclasses"
-        self._name = "LibraryClasses."+subsection
-        self._seperator = "|"
     
-    def sortedLibClasses(self):
-        sortedClasses = collections.OrderedDict(sorted(self._libclasses.items())) #sort alphabetically
+    def Parse(self):
+        while(True):
+            (eof, line) = self.parser.nextLine()
+            if (eof):
+                break
+            
+            #At this point we should have a library class elememt. Split on the pipe and store it.
+            tokens = line.split('|')
+            key = tokens[0].strip()
+            value = tokens[1].strip()
+            self.Update(key,value,self.parser.GetSource())
+
+    def sortedLibClasses(libclasses):
+        sortedClasses = collections.OrderedDict(sorted(libclasses.items())) #sort alphabetically
         sortedClasses = collections.OrderedDict(sorted(sortedClasses.items(), key=itemgetter(1))) #then sort by path
         return sortedClasses
     
+    def Write(self, stream):
+        stream.write("[LibraryClasses.%s]\n" % self.subsection)
+        if (len(self._libclasses) > 0):
+            maxkeylen = max(len(k) for k in self._libclasses) + 1
+            for k in DscLibraryClasses.sortedLibClasses(self._libclasses):
+                formatStr = "    {:" + str(maxkeylen) +"}|{}\n"
+                stream.write("%s\n" % (self.GetHistory(k)))
+                if (self.Get(k) is None):
+                    stream.write("#")
+                stream.write(formatStr.format(k, self.Get(k)))
+        stream.write("\n")
+
 #[Pcds*] section parser class. Subsection is e.g. "FixedAtBuild"
 class DscPcds(DscSection):
-    def __init__(self, subsection):
-        super().__init__()
+    def __init__(self, dscparser, subsection):
+        super().__init__(dscparser)
         self._pcds = {}
+        self.parser = dscparser
         self.subsection = subsection
         self._default = "_pcds"
-        self._name = "Pcds"+subsection
-    
+        
+    def Parse(self):
+        while (True):
+            (eof, line) = self.parser.nextLine()
+            if (eof):
+                break
+            
+            #At this point we should have a PCD element.  Split on the pipe and store it.
+            tokens = line.split('|')
+            #self.pcds[tokens[0].strip()] = tokens[1].strip()
+            key = tokens[0].strip()
+            value = tokens[1].strip()
+            self.Update(key,value,self.parser.GetSource())
+
+    def Write(self, stream):
+        stream.write("[Pcds%s]\n" % self.subsection)
+        for k in sorted(self._pcds):
+            stream.write("%s\n" % (self.GetHistory(k)))
+            if (self.Get(k) is None):
+                stream.write("#")
+            stream.write("    %s|%s\n" % (k, self.Get(k)))
+        stream.write("\n")
+
 #<LibraryClasses> option parser for components.
-class DscComponentLibraryClasses(DscSection):
-    def __init__(self):
+class DscComponentLibraryClasses(object):
+    def __init__(self, dscparser):
         self.libclasses = []
-        super().__init__()
-        self._name = "LibraryClasses"
-        self._default = "_pcds"
+        self.parser = dscparser
 
     def getLibrary(self, component, library):
         libInstance = next((v[1] for i, v in enumerate(self.libclasses) if v[0] == library), None)
@@ -227,25 +260,82 @@ class DscComponentLibraryClasses(DscSection):
         libInstance = next((v[1] for i, v in enumerate(self.libclasses) if v[0] == library), None)
         return (libInstance != None)
 
+    def Parse(self):
+        while(True):
+            (eof, line) = self.parser.nextLine()
+            if (eof):
+                break
+            
+            #At this point we should have a library class elememt. Split on the pipe and store it.
+            tokens = line.split('|')
+            self.libclasses.append((tokens[0].strip(), tokens[1].strip(), "LibraryClass Override"))
     
+    def Write(self, stream):
+        stream.write("        <LibraryClasses>\n")
+        maxKeyLength = max(len(k) for (k, v, s) in self.libclasses)
+        for (k,v,s) in self.libclasses:
+            if (s != None):
+                stream.write("            #Source: %s\n" % (s))
+            stream.write("            %-*s  |%s\n" % (maxKeyLength,k, v))
+
 #<Pcds*> option parser for components.
 class DscComponentPcds(DscSection):
-    def __init__(self, subsection):
-        super().__init__()
+    def __init__(self, dscparser, subsection):
         self._pcds = {}
+        self.parser = dscparser
         self.subsection = subsection
         self._default = "_pcds"
-        self._name = "Pcds"+subsection
-        self._default = "_pcds"
-        
+
+    def Parse(self):
+        while(True):
+            (eof, line) = self.parser.nextLine()
+            if (eof):
+                break
+            
+            #At this point we should have a pcd elememt. Split on the pipe and store it.
+            tokens = line.split('|')
+            key = tokens[0].strip()
+            value = tokens[1].strip()
+            self.Update(key,value,self.parser.GetSource())
+            #self.pcds[tokens[0].strip()] = tokens[1].strip()
+    
+    def Write(self, stream):
+        stream.write("         <Pcds%s>\n" % self.subsection)
+        for k in sorted(self._pcds):
+            stream.write("%s\n" % (self.GetHistory(k)))
+            if (self.Get(k) is None):
+                stream.write("#")
+            stream.write("            %s|%s\n" % (k, self.Get(k)))
 
 #<BuildOptions> option parser for components.
-class DscComponentBuildOptions(DscSection):
-    def __init__(self):
-        super().__init__()
-        self._options = {}
-        self._name = "BuildOptions"
-        self._default = "_options"
+class DscComponentBuildOptions(object):
+    def __init__(self, dscparser):
+        self.buildappend = {}
+        self.buildreplace = {}
+        self.parser = dscparser
+
+    
+    def Parse(self):
+        while(True):
+            (eof, line) = self.parser.nextLine()
+            if (eof):
+                break
+            
+            buildopt = line.split(maxsplit=2)
+            if (buildopt[1] == "="):
+                if (buildopt[0] in self.buildappend):
+                    self.buildappend[buildopt[0]] += " " + buildopt[2]
+                else:
+                    self.buildappend[buildopt[0]] = buildopt[2]
+            else:
+                self.buildreplace[buildopt[0]] = buildopt[2]
+
+    def Write(self, stream):
+        stream.write("        <BuildOptions>\n")
+        for k in sorted(self.buildappend):
+            stream.write("            %s=%s\n" % (k, self.buildappend[k]))
+        for k in sorted(self.buildreplace):
+            stream.write("            %s==%s\n" % (k, self.buildreplace[k]))
 
 #Component parser.
 #Parses the inf path,and then delegates parsing of options subsections to the option parsers above.
@@ -255,8 +345,8 @@ class DscComponent(DscSection):
                    "Pcds"           : DscComponentPcds,
                    "BuildOptions"   : DscComponentBuildOptions}
 
-    def __init__(self, subsection):
-        super().__init__()
+    def __init__(self, dscparser, subsection):
+        self.parser = dscparser
         self.componentPath = ""
         self._options = {}
         self._default = "_options"
@@ -265,67 +355,187 @@ class DscComponent(DscSection):
         self.fileguid = ""
         self.moduleType = ""
         self.isLibrary = False
-        
     
     def resolveLib(self, libname):
-        #if "LibraryClasses" not in self._options:
-            #self.Update("LibraryClasses",DscComponent.OptionTypes["LibraryClasses"](self.parser),self.parser.GetSource())            
+        if "LibraryClasses" not in self._options:
+            self.Update("LibraryClasses",DscComponent.OptionTypes["LibraryClasses"](self.parser),self.parser.GetSource())            
         return self.GetRaw("LibraryClasses").getLibrary(self, libname)
+   
     
-    
+    def parseComponentFile(self):
+        infFile = self.parser.resolvePath(self.componentPath.split("{")[0])
+        try:
+            with open(infFile) as inf:
+                line = inf.readline()
+                while(line != ""):
+                    if ("BASE_NAME" in line):
+                        self.basename = line.split("=")[1].strip().split(" ")[0].strip()
+                    if ("FILE_GUID" in line):
+                        self.fileguid = line.split("=")[1].strip().split(" ")[0].strip()
+                    if ("MODULE_TYPE" in line):
+                        self.moduleType = line.split("=")[1].strip().split(" ")[0].strip()
+                    if ("LIBRARY_CLASS" in line):
+                        self.isLibrary = True
+                    line = inf.readline()
+            if (not self.isLibrary):
+                self.parseLibraries(infFile, "This component INF")
+        except IOError as e:
+            logging.critical("Unable to open file %s" % infFile)
+
+    def parseLibraries(self, infFile, source):
+        newLibInfs = []
+        with open(infFile) as inf:
+            line = inf.readline()
+            while(line != ""):
+                if ("[LibraryClasses]" in line):
+                    line = inf.readline()
+                    while (line != "" and "[" not in line):
+                        libname = line.strip().split(" ")[0]
+                        if (libname == "" or libname[0] == "#"):
+                            line = inf.readline()
+                            continue
+                        if "LibraryClasses" not in self._options:
+                            self.Update("LibraryClasses", DscComponent.OptionTypes["LibraryClasses"](self.parser), self.parser.GetSource())
+                        if (not self.GetRaw("LibraryClasses").containsLibrary(libname)):
+                            libinf = self.resolveLib(libname)
+                            self.GetRaw("LibraryClasses").addLibrary(libname, libinf, source)
+                            newLibInfs.append(libinf)
+                        line = inf.readline()
+                    break
+                line = inf.readline()
+        #recursively process any newly added library instances for more library dependencies.
+        for libinf in newLibInfs:
+            self.parseLibraries(self.parser.resolvePath(libinf), "Implied by lib instance: " + libinf)
+
+    def Parse(self):
+        #Grab the component path
+        (eof, line) = self.parser.nextLine()
+        if (eof):
+            return False
+        
+        self.componentPath = line
+        
+        #if "{" exists, we need extended parsing.
+        if (line[-1] == "{"):
+            self.componentPath = line[:-1].strip() #remove the { from the component name
+            while(True):
+                (eof, line) = self.parser.nextLine()
+                if (eof):
+                    return False
+                #if "}", done with extended parsing
+                if (line[0] == "}"):
+                    break
+                #should be a options section header
+                #assume format of the header is "<Option>"
+                option = line[1:-1] #strip the <>
+                if (option not in self._options):
+                    #self.option doesn't have this option clause yet
+                    if (option in DscComponent.OptionTypes):
+                        #Recognizable option - create an entry in self.options for it.
+                        self.Update(option, DscComponent.OptionTypes[option](self.parser), self.parser.GetSource())
+                    #Pcds are weird. Handle them special.
+                    elif (option[0:4] in DscComponent.OptionTypes):
+                        self.Update(option, DscComponent.OptionTypes[option[0:4]](self.parser, option[4:]), self.parser.GetSource())
+                    else:
+                        #unrecognized section or line
+                        raise Exception("Unrecognized section or line in DSC Component: %s" % line)
+                
+                #If we get here, we have a parser for this option. Switch the end of section marker, then use it!
+                self.parser.setSectionChars("<}")
+                self.GetRaw(option).Parse()
+                self.parser.clearSectionChars()
+        return True
+        
+    def Write(self, stream):
+        stream.write("    %s" % self.componentPath)
+        if (len(self._options) != 0):
+            stream.write(" {\n")
+            for k in sorted(self._options):
+                self.GetRaw(k).Write(stream)
+            stream.write("    }")
+        stream.write("\n")
 
 #[Components] section parser. Subsection is e.g. "X64".
 class DscComponents(DscSection):
-    def __init__(self, subsection = ""):
-        super().__init__()
+    def __init__(self, dscparser, subsection):
+        super().__init__(dscparser)
         self._components = {}
+        self.parser = dscparser
         self._default = "_components"
         self.subsection = subsection
-        self._name = "Components."+subsection
-
-    def Parse(self, parser):
-        while(True):            
-             #Grab the component path
-            (eof, line) = parser.nextLine()
-            if (eof):                
-                return False
-
-            component = DscComponent(self.subsection)
-            componentPath = line
-            component.Parse(parser)
-            self.Update(componentPath,componentPath, parser.GetSource())
-
+        
+    def Parse(self):
+        while(True):
+            component = DscComponent(self.parser, self.subsection)
+            if (component.Parse()):
+                self.Update(component.componentPath,component,self.parser.GetSource())
+            else:
+                break
+    
     def Write(self, stream):
-        stream.write("[%s]\n" % self._name)
-        self.WriteDefines(stream)
-        for k in sorted(self.GetKeys()):
-            stream.write("%s\n" % (self.GetHistory(k)))
-            stream.write("    %s\n" % k)
-        stream.write("\n")   
-    
-    
+        stream.write("[Components.%s]\n" % self.subsection)
+        prevPkg = ""
+        for componentKey in sorted(self._components):
+            component = self.GetRaw(componentKey)
+            #Group by package (first element of path).
+            if (prevPkg != "" and prevPkg != re.split("[\\\/]", component.componentPath)[0]):
+                stream.write("\n")
+            prevPkg = re.split("[\\|\/]", component.componentPath)[0]
+            component.Write(stream)
+        stream.write("\n")
+
 #[BuildOptions] section parser.
 class DscBuildOptions(DscSection):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, dscparser):
+        super().__init__(dscparser)
         self.buildappend = {}
         self.buildreplace = {}
-        self._default = "_options"
-        self._options = {}
+        self.parser = dscparser
+    
+    def Parse(self):
+        while(True):
+            (eof, line) = self.parser.nextLine()
+            if (eof):
+                break
+            
+            buildopt = line.split(maxsplit=2)
+            if (buildopt[1] == "="):
+                if (buildopt[0] in self.buildappend):
+                    self.buildappend[buildopt[0]] += " " + buildopt[2]
+                else:
+                    self.buildappend[buildopt[0]] = buildopt[2]
+            else:
+                self.buildreplace[buildopt[0]] = buildopt[2]
 
-class DscParser:
-    def __init__(self,dscfilename, thebuilder, dsc):
+    def Write(self, stream):
+        stream.write("[BuildOptions]\n")
+        for k in sorted(self.buildappend):
+            stream.write("    %s=%s\n" % (k, self.buildappend[k]))
+        for k in sorted(self.buildreplace):
+            stream.write("    %s==%s\n" % (k, self.buildreplace[k]))
+
+#Main DSC parser. Deletgates parsing to section parsers.
+class Dsc(object):
+
+    SectionTypes = { "Defines"         : DscDefines, 
+                     "SkuIds"          : DscSkus,
+                     "LibraryClasses"  : DscLibraryClasses,
+                     "Pcds"            : DscPcds,
+                     "Components"      : DscComponents,
+                     "BuildOptions"    : DscBuildOptions}
+
+    def __init__(self, dscfilename, thebuilder):
         self.dscfilename = dscfilename
         self.dscfh = None
         self.dscfp = None
         self.dscline = 0
         self.thebuilder = thebuilder
+        self.Sections = {}
         self.eofOnSectionChars = "["
         self.filestack = []
         self.conditionalstack = []
-        self.dsc = dsc
 
-     #Given a path, use thebuilder.mws.join to resolve it to a system file path
+    #Given a path, use thebuilder.mws.join to resolve it to a system file path
     def resolvePath(self, path):        
         return self.thebuilder.mws.join(self.thebuilder.ws, path)
 
@@ -335,7 +545,8 @@ class DscParser:
         if (value == None):
             value = match.group() #if the variable could not be resolved, leave it as the variable name.
         return value
-     #Given a component and a library, resolve it to the library inf that satisfies this instance.
+
+    #Given a component and a library, resolve it to the library inf that satisfies this instance.
     def resolveLibraryInstance(self, component, library):
         libclasses = []
         if ("LibraryClasses."+component.subsection+"."+component.moduleType in self.Sections):
@@ -357,7 +568,7 @@ class DscParser:
 
     #check for exceptional variables. There are a few places where resolving a variable in the DSC that's intended for consumption elsewhere causes problems.
     #TODO: there's got to be a better way to deal with this.
-    def checkVariableExceptions(self,varname):
+    def checkVariableExceptions(varname):
         if ("MICROSOFT_WORKAROUND" in varname):
             return (True, None)
         return (False, None)
@@ -366,16 +577,16 @@ class DscParser:
     def resolveVariable(self, varname):
         value = None
         #Check for special variables
-        (requiresException, value) = self.checkVariableExceptions(varname)
+        (requiresException, value) = Dsc.checkVariableExceptions(varname)
         if (requiresException):
             return value
         
         #Convert variable $(FOO) to value of environment var FOO. Consult section defines, then global defines, then pcds, then builder as last resort.
-        value = self.dsc.GetRaw(self.currentSection,varname[2:-1])
+        value = self.currentSection.Get(varname[2:-1])
         if (value == None):
-            for section in self.dsc:
+            for section in self.Sections:
                 if (section.startswith("Pcds") and value == None):
-                    value = self.dsc.GetRaw(section,varname)
+                    value = self.Sections[section].Get(varname)
                 if (value != None):
                     logging.info("Resolved as PCD value")
 
@@ -401,7 +612,7 @@ class DscParser:
     
     #doOp - given the operation and value stack, perform the operation and push the result on the value stack
     #TODO: implement all the operators; right now only those present in our DSCs are implemented.
-    def doOp(self, op, valuestack):
+    def doOp(op, valuestack):
         if (op == "==" or op == "!="):
             val1 = valuestack.pop()
             val2 = valuestack.pop()
@@ -486,7 +697,7 @@ class DscParser:
             #handle right paren - pop and process ops off the opstack until we find the left paren.
             if (token[0] == ")"):
                 while (opstack[-1] != "("):
-                    self.doOp(opstack.pop(), valstack)
+                    Dsc.doOp(opstack.pop(), valstack)
                 opstack.pop()
                 continue
 
@@ -494,7 +705,7 @@ class DscParser:
             if (token in operators):
                 #pop higher-precedence operators off the stack and process them until we find an op of lower or equal precedence.
                 while(len(opstack) > 0 and operators[opstack[-1]]>=operators[token]):
-                    self.doOp(opstack.pop(), valstack)
+                    Dsc.doOp(opstack.pop(), valstack)
                 opstack.append(token)
                 continue
             
@@ -503,7 +714,7 @@ class DscParser:
 
         #all tokens have been processed; now just drain the opstack
         while(len(opstack) > 0):
-            self.doOp(opstack.pop(), valstack)
+            Dsc.doOp(opstack.pop(), valstack)
 
         if (valstack.pop() == 0):
             return False
@@ -535,7 +746,7 @@ class DscParser:
     def clearSectionChars(self):
         self.eofOnSectionChars = "["
 
-        #
+    #
     # Parser core: this routine reads the next line from the file, sanitizes it, and handles
     # any special stuff (like conditionals and includes)
     def nextLine(self, eofOnSection=True):
@@ -600,7 +811,7 @@ class DscParser:
             #down to section level. 
             if (line.startswith("DEFINE")):
                 macro = line[6:].split("=")
-                self.dsc.UpdateOrCreateValue(self.currentSection,macro[0].strip(), macro[1].strip(), self.GetSource())
+                self.currentSection.Update(macro[0].strip(), macro[1].strip(), self.GetSource())
                 line = ""
                 continue
 
@@ -632,12 +843,27 @@ class DscParser:
                 #so every line we see should be a section declaration. 
                 #assume format of the section is "[Section.sub.sub.etc]"
                 section = line[1:-1] #strip the []
-                self.dsc.AddSection(section)
+                if (section not in self.Sections):
+                    #self.Sections doesn't have this section yet.
+                    #Split on the first "." to get the main section and subsections. Handle Pcds special, 'cause they are weird.
+                    if (section[0:4] == "Pcds"):
+                        elements = (section[0:4], section[4:])
+                    else:
+                        elements = section.split(".", 1)
+                    if (elements[0] in Dsc.SectionTypes):
+                        #Recognizable section - create an entry in self.Sections for it.
+                        if (len(elements) > 1):
+                            #has subsections
+                            self.Sections[section] = Dsc.SectionTypes[elements[0]](self, elements[1])
+                        else:
+                            self.Sections[section] = Dsc.SectionTypes[elements[0]](self)
+                    else:
+                        #unrecognized section or line
+                        raise Exception("Unrecognized section or line in DSC: %s" % line)
                 
                 #If we get here, we have a parser for this section. Use it!
-                self.currentSection = section
-                self.dsc.ParseSection(self.currentSection,self)
-                #figure out how to parse it?
+                self.currentSection = self.Sections[section]
+                self.currentSection.Parse()
         except Exception as exc:
             logging.critical("Error in %s line %d: %s" % (self.dscfh.name, self.dscline, exc))
             status = -1
@@ -650,84 +876,21 @@ class DscParser:
         if (not self.dscfh.closed):
             self.dscfh.close()
 
-        '''for componentSection in self.dsc.GetListOfSections():
+        for componentSection in self.Sections:
             if componentSection.startswith("Component"):
                 for componentKey in self.Sections[componentSection]._components:
                     component = self.Sections[componentSection].GetRaw(componentKey)
-                    component.parseComponentFile()'''
+                    component.parseComponentFile()
 
         return status
 
-#Main DSC Object. Deletgates
-class Dsc(object):
-
-    SectionTypes = { "Defines"         : DscDefines, 
-                     "SkuIds"          : DscSkus,
-                     "LibraryClasses"  : DscLibraryClasses,
-                     "Pcds"            : DscPcds,
-                     "Components"      : DscComponents,
-                     "BuildOptions"    : DscBuildOptions}
-
-    def __init__(self):
-        self.__sections = {}
-
-    def __contains__(self, key):        
-        return key in self.__sections
-
-    def GetListOfSections(self):
-        return list(self.__sections.keys())
-    
-    """Adds a section to the DSC"""
-    def AddSection(self, section):
-        if (section not in self.__sections):
-            if (section[0:4] == "Pcds"):
-                elements = (section[0:4], section[4:])
-            else:
-                elements = section.split(".", 1)
-            if (elements[0] in Dsc.SectionTypes):
-                #Recognizable section - create an entry in self.Sections for it.
-                if (len(elements) > 1):
-                    #has subsections
-                    self.__sections[section] = Dsc.SectionTypes[elements[0]](elements[1])
-                else:
-                    self.__sections[section] = Dsc.SectionTypes[elements[0]]()
-            else:
-                #unrecognized section or line
-                raise Exception("Unrecognized section trying to be added: %s" % section)
-            #TODO if we have a components section we need to create the section in it?
-        
-    # changes a variable in a specific section with the history reasoning
-    def UpdateOrCreateValue(self, section, key, value, history, level=DscScopeLevel.default):
-        self.AddSection(section)
-        self.__sections[section].Update(key,value,history)
-        return self
-
-    # Get the selected value from a specific section with the key
-    # returns None if not found
-    def GetValue(self, section, key): 
-        #TODO return a value
-        return None
-
-    def _GetSectionKeys(self,section):
-        if (section not in self.__sections):
-            return []
-        else:            
-            return self.__sections[section].GetKeys()
-            
-    def _GetSection(self,section):
-        if (section not in self.__sections):
-            return None
-        else:            
-            return self.__sections[section]
-
-        
     #Sorting routines to order sections per EDK spec for Write
-    def subsectionOrder(self,subsection):
+    def subsectionOrder(subsection):
         if "common" in subsection:
             return 0
         return 1
 
-    def sectionOrder(self,section):
+    def sectionOrder(section):
         sectionOrder = { "Defines": 0,
                          "SkuIds": 1, 
                          "LibraryClasses" : 2,
@@ -741,23 +904,15 @@ class Dsc(object):
 
         return len(sectionOrder)
 
-    def sortSectionKeys(self):
-        sectionList = sorted(self.__sections) #sort alphabetically first
-        sectionList = sorted(sectionList, key=self.subsectionOrder) #sort subsections
-        sectionList = sorted(sectionList, key=self.sectionOrder) #sort sections
+    def sortSectionKeys(sections):
+        sectionList = sorted(sections) #sort alphabetically first
+        sectionList = sorted(sectionList, key=Dsc.subsectionOrder) #sort subsections
+        sectionList = sorted(sectionList, key=Dsc.sectionOrder) #sort sections
         return sectionList
 
     def Write(self, stream):
-        for section in self.sortSectionKeys():
-            self.__sections[section].Write(stream)
-
-    def Parse(self, dscfilename, thebuilder):
-        parser = DscParser(dscfilename, thebuilder, self)
-        parser.Parse()
-
-    def ParseSection(self, section, parser):
-        self.__sections[section].Parse(parser)
-
+        for section in Dsc.sortSectionKeys(self.Sections):
+            self.Sections[section].Write(stream)
 
 ##
 # HELPER FUNCTIONS

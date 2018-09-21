@@ -624,15 +624,14 @@ def main(my_workspace_path, my_project_scope):
             MODULE_PACKAGES.append(pp)
 
             module_pkg_paths = ";".join(pkg_name for pkg_name in MODULE_PACKAGES)
-            logging.critical(MODULE_PACKAGES)
+            logging.critical("Packages we are including: %s " % module_pkg_paths)
 
             # Override the global build vars so each is local to the builder.
             local_build_vars = copy.copy(shell_env.build_var_dict)
 
 
             #Build Platform
-            PB = PlatformBuilder(ws, module_pkg_paths, build_env.plugins, temp_argv, IgnoreList, local_build_vars)
-            logging.critical("PB DEFINED")
+            PB = PlatformBuilder(ws, module_pkg_paths, build_env.plugins, temp_argv, IgnoreList, local_build_vars)            
             starttime = time.time()
             retcode = PB.Go()
             if not "--skipbuild" in str(sys.argv).lower():
