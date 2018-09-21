@@ -271,6 +271,34 @@ class DscComponent(DscSection):
         #if "LibraryClasses" not in self._options:
             #self.Update("LibraryClasses",DscComponent.OptionTypes["LibraryClasses"](self.parser),self.parser.GetSource())            
         return self.GetRaw("LibraryClasses").getLibrary(self, libname)
+
+    def Parse(self, parser):
+        while(True):
+            (eof, line) = parser.nextLine()
+            if (eof):
+                return False
+            #if "}", done with extended parsing
+            if (line[0] == "}"):
+                break
+            #should be a options section header
+            #assume format of the header is "<Option>"
+            option = line[1:-1] #strip the <>
+            if (option not in self._options):
+                #self.option doesn't have this option clause yet
+                if (option in DscComponent.OptionTypes):
+                    #Recognizable option - create an entry in self.options for it.
+                    self.Update(option, DscComponent.OptionTypes[option](), parser.GetSource())
+                #Pcds are weird. Handle them special.
+                elif (option[0:4] in DscComponent.OptionTypes):
+                    self.Update(option, DscComponent.OptionTypes[option[0:4]]( option[4:]), parser.GetSource())
+                else:
+                    #unrecognized section or line
+                    raise Exception("Unrecognized section or line in DSC Component: %s" % line)
+
+            #If we get here, we have a parser for this option. Switch the end of section marker, then use it!
+            parser.setSectionChars("<}")
+            self.GetRaw(option).Parse(parser)
+            parser.clearSectionChars()
     
     
 
@@ -289,10 +317,11 @@ class DscComponents(DscSection):
             (eof, line) = parser.nextLine()
             if (eof):                
                 return False
-
             component = DscComponent(self.subsection)
             componentPath = line
-            component.Parse(parser)
+            if (line[-1] == "{"):
+                componentPath = line[:-1].strip() #remove the { from the component name            
+                component.Parse(parser)
             self.Update(componentPath,componentPath, parser.GetSource())
 
     def Write(self, stream):
