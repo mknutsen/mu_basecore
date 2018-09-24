@@ -35,7 +35,7 @@ try:
             #check to see if there are any python plugins in this folder
             if (status != 0):
                 logging.critical("Pre-Parsing failed!!")
-                #return 1
+                return 0
 
             #foreach plugin, run the plugins
             #TODO deterministiclly determine the order that plugins get run 

@@ -132,6 +132,15 @@ class DscSection(object):
         else:
             store[key].set(value, history, scope)
 
+    def Rename(self, key1, key2, history):
+        store = getattr(self,self._default)
+        if (key1 not in store):
+            return None
+        else:
+            store[key2] = store[key1]
+            store[key1] = None
+            store[key2].Update
+
     def WriteDefines(self,stream):
         #Global defines may be used in FDF, so print them here.
         for k in sorted(self.__defines):
@@ -317,12 +326,13 @@ class DscComponents(DscSection):
             (eof, line) = parser.nextLine()
             if (eof):                
                 return False
-            component = DscComponent(self.subsection)
+            component = None
             componentPath = line
             if (line[-1] == "{"):
+                component = DscComponent(self.subsection)
                 componentPath = line[:-1].strip() #remove the { from the component name            
                 component.Parse(parser)
-            self.Update(componentPath,componentPath, parser.GetSource())
+            self.Update(componentPath,component, parser.GetSource())
 
     def Write(self, stream):
         stream.write("[%s]\n" % self._name)

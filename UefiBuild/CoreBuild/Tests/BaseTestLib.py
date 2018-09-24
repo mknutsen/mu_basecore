@@ -49,6 +49,27 @@ class BaseTestLibClass(object):
         logging.error("BASE TEST CLASS NOT OVERWRITTEN")
         return -1
 
+    ## join()
+    #
+    #   rewrite os.path.join function
+    #
+    #   @param  cls       The class pointer
+    #   @param  Ws        the current WORKSPACE
+    #   @param  *p        path of the inf/dec/dsc/fdf/conf file
+    #   @retval Path      the absolute path of specified file
+    #
+    def FindFile(self, *p):
+        packages = self.pp.split(";")
+        Path = os.path.join(self.ws, *p)
+        if not os.path.exists(Path):
+            for Pkg in packages:
+                Path = os.path.join(Pkg, *p)                
+                if os.path.exists(Path):
+                    return Path
+            Path = os.path.join(self.ws, *p)
+        return Path
+    
+
     #
     # Walks a directory for all itmes ending in certain extension
     # Default is to walk all of workspace

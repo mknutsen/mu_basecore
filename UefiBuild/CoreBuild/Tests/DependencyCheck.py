@@ -1,7 +1,6 @@
 from Tests.BaseTestLib import *
 import copy
 
-
 class DependencyCheckClass(BaseTestLibClass):
 
     def __init__(self, workspace, packagespath, args, ignorelist = None, environment = None, summary = None, xmlartifact = None):
@@ -28,7 +27,9 @@ class DependencyCheckClass(BaseTestLibClass):
             if not file.lower() in self.ignorelist:
                 #Reset parser lists and parse file
                 self.ip.__init__()
+                self.ip.SetBaseAbsPath(self.ws)
                 self.ip.ParseFile(file)
+                logging.critical(file)
 
                 Protocols = copy.copy(self.ip.ProtocolsUsed)
                 Packages = copy.copy(self.ip.PackagesUsed)
@@ -42,9 +43,9 @@ class DependencyCheckClass(BaseTestLibClass):
                 for DEC in Packages:
                     if DEC not in DEC_Dict:
                         if not DEC.lower().strip() in self.ignorelist:
-                            self.decp.__init__()
+                            self.decp.__init__()                            
                             try:
-                                self.decp.ParseFile(os.path.join(self.ws, DEC))
+                                self.decp.ParseFile(self.FindFile(DEC))
                             except Exception as e:
                                 if self.summary is not None:
                                     self.summary.AddError("DEPENDENCY: Failed to parse DEC %s. Exception: %s" % (DEC,str(e)),  2)

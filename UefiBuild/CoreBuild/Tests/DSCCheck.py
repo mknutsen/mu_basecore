@@ -20,7 +20,7 @@ class DSCCheckClass(BaseTestLibClass):
         INFFiles = [os.path.basename(x) for x in INFFiles]
 
         self.dp.__init__()
-        self.dp.ParseFile(os.path.join(self.ws, AP))
+        self.dp.ParseFile(self.FindFile(AP))
 
         #lowercase for matching
         self.dp.Libs = [x.lower() for x in self.dp.Libs]
