@@ -657,22 +657,7 @@ def main(my_workspace_path, my_project_scope):
                 logging.info("Deleting the temp.dsc file %s" % File)
                 #os.remove(File)
             
-            CLONE_PATH = os.path.join(ws,TEMP_MODULE_DIR)
-            logging.critical("Deleting the cloned module file %s" % CLONE_PATH)
-            SHOULD_DELETE_CLONED_MODULES = False
-            if SHOULD_DELETE_CLONED_MODULES:
-                retry = 3 
-                while retry > 0:
-                    try:
-                        shutil.rmtree(CLONE_PATH, ignore_errors=True) 
-                    except OSError:
-                        if not retry:
-                        # If we're out of retries, bail.
-                            raise
-                        time.sleep(5)
-                        retry -= 1
-                        continue
-                    break
+            
 
                 
                
@@ -686,6 +671,24 @@ def main(my_workspace_path, my_project_scope):
             else:
                 logging.critical("All Tests Success")
                 summary_log.AddResult('{:50} {:>41}'.format(File, "All Tests Successful"), 1)
+
+
+            CLONE_PATH = os.path.join(ws,TEMP_MODULE_DIR)
+            logging.critical("Deleting the cloned module file %s" % CLONE_PATH)
+            SHOULD_DELETE_CLONED_MODULES = True
+            if SHOULD_DELETE_CLONED_MODULES:
+                retry = 3 
+                while retry > 0:
+                    try:
+                        shutil.rmtree(CLONE_PATH, ignore_errors=True) 
+                    except OSError:
+                        if not retry:
+                        # If we're out of retries, bail.
+                            raise
+                        time.sleep(5)
+                        retry -= 1
+                        continue
+                    break
 
             if(package_success == False):
                 logging.critical("Package Error")
