@@ -45,13 +45,13 @@ class DscValue(object):
         if (newValue != self._value[0] and self._scope[0] == scope):
             logging.warn("Same scope level conflict of %s for value %s from %s" % (scope, newValue, history))
         
-        if (newValue != self._value[0] and self._scope[0] <= scope):
+        if (self._scope[0] <= scope):
             self._revisions += 1
             self._value.insert(0,newValue) # put the new value at the front of the array
             self._history.insert(0,history)
             self._scope.insert(0,scope)
 
-        elif (newValue != self._value[0] and self._scope[0] > scope) or newValue == self._value[0]:
+        elif (newValue != self._value[0] and self._scope[0] > scope):
             self._revisions += 1
             self._value.insert(1,newValue) # put the new value at the front of the array            
             self._history.insert(1,"Ignored: %s" % (history))
@@ -64,10 +64,13 @@ class DscValue(object):
     def Get(self):
         return self._value[0]
 
+    def _GetAllValues(self):
+        return list(self._value)
+
     # get the history for this DSC value
     def History(self):
         def _ConvertHistory(index):
-            return "\t# Revision:%s from %s: scope=%s" %(self._value[index],self._history[index], self._scope[index])
+            return " # Revision:%s from %s: scope=%s" %(self._value[index],self._history[index], self._scope[index])
         historyList = list(map(_ConvertHistory, range(len(self._value))))
         return str.join("\n",historyList)
 
@@ -90,6 +93,7 @@ class DscSection(object):
         self.__defines = {}
         self._name = "DEFAULT_NAME"
         self._seperator = "="
+        self._indent = " "
     
    
     def Get(self, key):
@@ -144,10 +148,10 @@ class DscSection(object):
     def WriteDefines(self,stream):
         #Global defines may be used in FDF, so print them here.
         for k in sorted(self.__defines):
-            stream.write("%s\n" % (self.GetHistory(k)))
+            stream.write("%s%s\n" % (self._indent,self.GetHistory(k)))
             if (self.Get(k) is None):
                 stream.write("#")    
-            stream.write("    DEFINE %s = %s\n" % (k, self.Get(k)))
+            stream.write("%sDEFINE %s = %s\n" % (self._indent, k, self.Get(k)))
 
     def Parse(self,parser):
         while(True):
@@ -165,30 +169,46 @@ class DscSection(object):
                 value = tokens[1].strip()
                 self.Update(key,value,parser.GetSource())
 
+    def WriteName(self,stream):
+        stream.write("%s[%s]\n" % (self._indent,self._name))
+
     def Write(self, stream):
-        stream.write("[%s]\n" % self._name)
+        self.WriteName(stream)
+        store = getattr(self,self._default)
         self.WriteDefines(stream)
         for k in sorted(self.GetKeys()):
-            stream.write("%s\n" % (self.GetHistory(k)))
-            if (self.Get(k) is None):
-                stream.write("#")
-            stream.write("    %s%s%s\n" % (k, self._seperator,self.Get(k)))
+            stream.write("%s %s\n" % (self._indent,self.GetHistory(k)))
+            if k == "NULL":
+                for value in store[k]._GetAllValues(): 
+                    stream.write("%s %s%s%s\n" % (self._indent,k, self._seperator,value))
+            else:            
+                if (self.Get(k) is None):
+                    stream.write("#")
+                stream.write("%s %s%s%s\n" % (self._indent,k, self._seperator,self.Get(k)))
         stream.write("\n")
+
+class DscComponentSection(DscSection):
+    def __init__(self):        
+        super().__init__()
+        self._indent = "\t\t"
+
+    def WriteName(self, stream):
+        stream.write("%s<%s>\n" % (self._indent,self._name))
 
 #[Defines] section parser class.
 class DscDefines(DscSection):
     def __init__(self):
         super().__init__()
-        self.globals = {}
-        self._default = "globals"
+        self._globals = {}
+        self._default = "_globals"
         self._name = "Defines"
     
 #[SkuIds] section parser class
 class DscSkus(DscSection):
     def __init__(self):
         super().__init__()
-        self.skus = {}
-        self._default = "skus"
+        self._skus = {}
+        self._default = "_skus"
         self._name = "Skus"
     
 #[LibraryClasses] section parser class. Handles subsections (e.g. LibraryClasses.IA32) as well.
@@ -216,12 +236,14 @@ class DscPcds(DscSection):
         self._name = "Pcds"+subsection
     
 #<LibraryClasses> option parser for components.
-class DscComponentLibraryClasses(DscSection):
+class DscComponentLibraryClasses(DscComponentSection):
     def __init__(self):
         self.libclasses = []
+        self._libs = {}
         super().__init__()
         self._name = "LibraryClasses"
-        self._default = "_pcds"
+        self._default = "_libs"
+        self._seperator = "|"
 
     def getLibrary(self, component, library):
         libInstance = next((v[1] for i, v in enumerate(self.libclasses) if v[0] == library), None)
@@ -238,18 +260,17 @@ class DscComponentLibraryClasses(DscSection):
 
     
 #<Pcds*> option parser for components.
-class DscComponentPcds(DscSection):
+class DscComponentPcds(DscComponentSection):
     def __init__(self, subsection):
         super().__init__()
         self._pcds = {}
         self.subsection = subsection
         self._default = "_pcds"
         self._name = "Pcds"+subsection
-        self._default = "_pcds"
-        
+        self._seperator = "|"
 
 #<BuildOptions> option parser for components.
-class DscComponentBuildOptions(DscSection):
+class DscComponentBuildOptions(DscComponentSection):
     def __init__(self):
         super().__init__()
         self._options = {}
@@ -296,10 +317,12 @@ class DscComponent(DscSection):
                 #self.option doesn't have this option clause yet
                 if (option in DscComponent.OptionTypes):
                     #Recognizable option - create an entry in self.options for it.
-                    self.Update(option, DscComponent.OptionTypes[option](), parser.GetSource())
+                    component = DscComponent.OptionTypes[option]()
+                    self.Update(option, component, parser.GetSource())
                 #Pcds are weird. Handle them special.
                 elif (option[0:4] in DscComponent.OptionTypes):
-                    self.Update(option, DscComponent.OptionTypes[option[0:4]]( option[4:]), parser.GetSource())
+                    component = DscComponent.OptionTypes[option[0:4]](option[4:])
+                    self.Update(option, component, parser.GetSource())
                 else:
                     #unrecognized section or line
                     raise Exception("Unrecognized section or line in DSC Component: %s" % line)
@@ -308,6 +331,15 @@ class DscComponent(DscSection):
             parser.setSectionChars("<}")
             self.GetRaw(option).Parse(parser)
             parser.clearSectionChars()
+
+    def Write(self, stream):        
+        self.WriteDefines(stream)
+        for k in sorted(self.GetKeys()):
+            stream.write("%s\n" % (self.GetHistory(k)))
+            value = self.GetRaw(k)
+            if value:
+                value.Write(stream)
+        stream.write("\n")   
     
     
 
@@ -335,11 +367,18 @@ class DscComponents(DscSection):
             self.Update(componentPath,component, parser.GetSource())
 
     def Write(self, stream):
-        stream.write("[%s]\n" % self._name)
+        self.WriteName(stream)
         self.WriteDefines(stream)
         for k in sorted(self.GetKeys()):
-            stream.write("%s\n" % (self.GetHistory(k)))
-            stream.write("    %s\n" % k)
+            stream.write("%s %s\n" % (self._indent,self.GetHistory(k)))
+            stream.write("%s %s" % (self._indent,k))
+            value = self.GetRaw(k)
+            if value:
+                stream.write("{\n")
+                value.Write(stream)
+                stream.write("}\n")
+            else:
+                stream.write("\n")
         stream.write("\n")   
     
     
@@ -350,6 +389,7 @@ class DscBuildOptions(DscSection):
         self.buildappend = {}
         self.buildreplace = {}
         self._default = "_options"
+        self._name = "BuildOptions"
         self._options = {}
 
 class DscParser:
@@ -377,17 +417,17 @@ class DscParser:
      #Given a component and a library, resolve it to the library inf that satisfies this instance.
     def resolveLibraryInstance(self, component, library):
         libclasses = []
-        if ("LibraryClasses."+component.subsection+"."+component.moduleType in self.Sections):
-            libraryInst = self.Sections["LibraryClasses."+component.subsection+"."+component.moduleType].Get(library)
+        if ("LibraryClasses."+component.subsection+"."+component.moduleType in self.dsc):
+            libraryInst = self.dsc.GetValue("LibraryClasses."+component.subsection+"."+component.moduleType,library)
             if (libraryInst != None):
                 return libraryInst
 
-        if ("LibraryClasses."+component.subsection in self.Sections):
-            libraryInst = self.Sections["LibraryClasses."+component.subsection].Get(library)
+        if ("LibraryClasses."+component.subsection in self.dsc):
+            libraryInst = self.dsc.GetValue("LibraryClasses."+component.subsection,library)
             if (libraryInst != None):
                 return libraryInst
-        if ("LibraryClasses.common" in self.Sections):
-            libraryInst = self.Sections["LibraryClasses.common"].Get(library)
+        if ("LibraryClasses.common" in self.dsc):
+            libraryInst = self.dsc.GetValue("LibraryClasses.common",library)
             if (libraryInst != None):
                 return libraryInst
 
@@ -745,7 +785,8 @@ class Dsc(object):
     # returns None if not found
     def GetValue(self, section, key): 
         #TODO return a value
-        return None
+        self.AddSection(section)
+        return self.__sections[section].GetRaw(key)
 
     def _GetSectionKeys(self,section):
         if (section not in self.__sections):

@@ -29,7 +29,6 @@ class DependencyCheckClass(BaseTestLibClass):
                 self.ip.__init__()
                 self.ip.SetBaseAbsPath(self.ws)
                 self.ip.ParseFile(file)
-                logging.critical(file)
 
                 Protocols = copy.copy(self.ip.ProtocolsUsed)
                 Packages = copy.copy(self.ip.PackagesUsed)

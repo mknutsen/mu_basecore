@@ -675,12 +675,13 @@ def main(my_workspace_path, my_project_scope):
 
             CLONE_PATH = os.path.join(ws,TEMP_MODULE_DIR)
             logging.critical("Deleting the cloned module file %s" % CLONE_PATH)
-            SHOULD_DELETE_CLONED_MODULES = True
+            SHOULD_DELETE_CLONED_MODULES = False
             if SHOULD_DELETE_CLONED_MODULES:
                 retry = 3 
                 while retry > 0:
                     try:
                         shutil.rmtree(CLONE_PATH, ignore_errors=True) 
+                        shutil.rmtree(os.path.join(CLONE_PATH,".git"), ignore_errors=True) 
                     except OSError:
                         if not retry:
                         # If we're out of retries, bail.
@@ -689,7 +690,7 @@ def main(my_workspace_path, my_project_scope):
                         retry -= 1
                         continue
                     break
-
+                # This still isn't working
             if(package_success == False):
                 logging.critical("Package Error")
                 overall_success = False
