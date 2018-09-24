@@ -28,6 +28,7 @@ class UefiBuilder(object):
         self.SkipBuild = False
         self.SkipPreBuild = False
         self.SkipPostBuild = False
+        self.SkipDscProcessor = False
         self.FlashImage = False
         self.ShowHelpOnly = False
         self.OutputBuildEnvBeforeBuildToFile = None
@@ -320,7 +321,10 @@ class UefiBuilder(object):
             logging.critical("ParseTargetFile failed")
             return ret
 
-        DscProcessor.do_processing(self)
+        if not self.SkipDscProcessor:
+            DscProcessor.do_processing(self)
+        else:
+            logging.info("Skipping the DSC Processor")
 
 
         #parse DSC file
@@ -512,12 +516,14 @@ class UefiBuilder(object):
         print(" BLD_<TARGET>_<key>=<value>  - Set a build flag for build type of <target>.  Key=value will get passed to build process for given build type")
         print(" --skipbuild                 - Skip the build process ")
         print(" --skipprebuild              - Skip prebuild process")
+        print(" --skipdscprocessor          - Skip the DSC Processor")
         print(" --skippostbuild             - Skip postbuild process")
         print(" --FlashRom                  - Flash rom after build.  Only works with single target")
         print(" --FlashOnly                 - Flash rom.  Rom must be built previously.  Only works with single target")
         print(" --UpdateConf                - Update Conf.  Builders Conf files will be replaced with latest template files")
         print(" --Clean                     - Clean.  Remove all old build artifacts and intermediate files")
         print(" --CleanOnly                 - Clean Only.  Do clean operation and don't build just exit.")
+
 
     #
     # Parse args looking for the help flag
@@ -545,6 +551,8 @@ class UefiBuilder(object):
                     self.SkipPreBuild = True
                 elif(a.upper() == "--SKIPPOSTBUILD"):
                     self.SkipPostBuild = True
+                elif(a.upper() == "--skipdscprocessor"):
+                    self.SkipDscProcessor = True
                 elif(a.upper() == "--FLASHONLY"):
                     self.SkipPostBuild = True
                     self.SkipBuild = True
