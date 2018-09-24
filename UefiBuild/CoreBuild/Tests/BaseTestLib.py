@@ -59,7 +59,7 @@ class BaseTestLibClass(object):
     #   @retval Path      the absolute path of specified file
     #
     def FindFile(self, *p):
-        packages = self.pp.split(";")
+        packages = self.pp.split(os.pathsep)
         Path = os.path.join(self.ws, *p)
         if not os.path.exists(Path):
             for Pkg in packages:

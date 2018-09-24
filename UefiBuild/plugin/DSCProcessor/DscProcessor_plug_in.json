@@ -1,6 +1,0 @@
-{
-    "scope": "global",
-    "name": "DSC Pre Build Processor Plugin",
-    "module": "DscProcessor",
-    "include": true
-  }

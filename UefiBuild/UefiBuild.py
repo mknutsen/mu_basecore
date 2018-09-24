@@ -9,6 +9,7 @@ import time
 from datetime import datetime
 from datetime import timedelta
 import ShellEnvironment
+from DscProcessor import DscProcessor
 from Uefi.EdkII.Parsers.TargetTxtParser import *
 from Uefi.EdkII.Parsers.DscParser import *
 from UtilityFunctions import RunCmd
@@ -52,6 +53,15 @@ class UefiBuilder(object):
                 self.ShowHelp()
                 return 0
 
+            #
+            #Load Helpers
+            #
+            for Descriptor in self.PluginManager.GetPluginsOfClass(PluginManager.IUefiHelperPlugin):
+                logging.debug("Helper Plugin Register: %s", Descriptor.Name)
+                Descriptor.Obj.RegisterHelpers(self.Helper)
+
+            self.Helper.DebugLogRegisteredFunctions()
+            
             ret = self.SetEnv()
             if(ret != 0):
                 logging.critical("SetEnv failed")
@@ -65,14 +75,7 @@ class UefiBuilder(object):
                     logging.critical("Clean failed")
                     return ret
 
-            #
-            #Load Helpers
-            #
-            for Descriptor in self.PluginManager.GetPluginsOfClass(PluginManager.IUefiHelperPlugin):
-                logging.debug("Helper Plugin Register: %s", Descriptor.Name)
-                Descriptor.Obj.RegisterHelpers(self.Helper)
-
-            self.Helper.DebugLogRegisteredFunctions()
+            
             
             #prebuild
             if(self.SkipPreBuild == True):
@@ -317,6 +320,9 @@ class UefiBuilder(object):
             logging.critical("ParseTargetFile failed")
             return ret
 
+        DscProcessor.do_processing(self)
+
+
         #parse DSC file
         ret = self.ParseDscFile()
         if(ret != 0):
@@ -441,12 +447,12 @@ class UefiBuilder(object):
     # be used in the build.  This makes it so we don't have to define things twice
     #
     def ParseDscFile(self):
-        if(os.path.isfile(self.mws.join(self.ws, self.env.GetValue("ACTIVE_PLATFORM")))):
+        dsc_file_path = self.mws.join(self.ws, self.env.GetValue("ACTIVE_PLATFORM"))
+        if(os.path.isfile(dsc_file_path)):
              #parse DSC File
-            logging.debug("Parse Active Platform DSC file")
+            logging.debug("Parse Active Platform DSC file: {0}".format(dsc_file_path))
             dscp = DscParser().SetBaseAbsPath(self.ws).SetPackagePaths(self.pp.split(";")).SetInputVars(self.env.GetAllBuildKeyValues())
-            pa = self.mws.join(self.ws, self.env.GetValue("ACTIVE_PLATFORM"))
-            dscp.ParseFile(pa)
+            dscp.ParseFile(dsc_file_path)
             for key,value in dscp.LocalVars.items():
                 #set env as overrideable
                 self.env.SetValue(key, value, "From Platform DSC File", True)

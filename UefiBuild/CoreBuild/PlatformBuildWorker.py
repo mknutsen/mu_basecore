@@ -623,7 +623,7 @@ def main(my_workspace_path, my_project_scope):
             MODULE_PACKAGES = GenerateModulesDependencies(File, ws)
             MODULE_PACKAGES.append(pp)
 
-            module_pkg_paths = ";".join(pkg_name for pkg_name in MODULE_PACKAGES)
+            module_pkg_paths = os.pathsep.join(pkg_name for pkg_name in MODULE_PACKAGES)
             logging.critical("Packages we are including: %s " % module_pkg_paths)
 
             # Override the global build vars so each is local to the builder.

@@ -833,7 +833,7 @@ class Dsc(object):
 
     def Parse(self, dscfilename, thebuilder):
         parser = DscParser(dscfilename, thebuilder, self)
-        parser.Parse()
+        return parser.Parse()
 
     def ParseSection(self, section, parser):
         self.__sections[section].Parse(parser)
