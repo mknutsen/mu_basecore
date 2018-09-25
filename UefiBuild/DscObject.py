@@ -450,11 +450,11 @@ class DscParser:
             return value
         
         #Convert variable $(FOO) to value of environment var FOO. Consult section defines, then global defines, then pcds, then builder as last resort.
-        value = self.dsc.GetRaw(self.currentSection,varname[2:-1])
+        value = self.dsc.GetValue(self.currentSection,varname[2:-1])
         if (value == None):
             for section in self.dsc:
                 if (section.startswith("Pcds") and value == None):
-                    value = self.dsc.GetRaw(section,varname)
+                    value = self.dsc.GetValue(section,varname)
                 if (value != None):
                     logging.info("Resolved as PCD value")
 
