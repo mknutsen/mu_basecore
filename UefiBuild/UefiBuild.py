@@ -551,7 +551,7 @@ class UefiBuilder(object):
                     self.SkipPreBuild = True
                 elif(a.upper() == "--SKIPPOSTBUILD"):
                     self.SkipPostBuild = True
-                elif(a.upper() == "--skipdscprocessor"):
+                elif(a.upper() == "--SKIPDSCPROCESSOR"):
                     self.SkipDscProcessor = True
                 elif(a.upper() == "--FLASHONLY"):
                     self.SkipPostBuild = True
