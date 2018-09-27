@@ -1,0 +1,13 @@
+In a module, it can have a .depends file. CoreBuild will make sure this module can be found by the build system.
+
+Here's an example of a depends file
+
+[Common/SM_MU_TIANO_PLUS]
+	url = https://github.com/Microsoft/mu_tiano_plus.git
+    branch = release/20180529
+    commit = 5d4a51b4a8d20e5ff1f75adeb969697b1cc201cb
+
+[SM_SECRET_STUFF]
+	url = https://github.com/Microsoft/mu_tiano_minus.git
+    branch = release/20200520
+    commit = latest
