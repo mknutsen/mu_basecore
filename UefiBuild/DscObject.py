@@ -163,7 +163,7 @@ class DscSection(object):
             #treat them the same, but if it is a DEFINE, normalize the whitespace between the DEFINE and the variable name to a single space.
             tokens = line.split(self._seperator)
             if len(tokens) != 2:
-                logging.critical("ERROR IN DSC PARSER: Unknown line %s" % line)
+                logging.critical("ERROR IN DSC PARSER at {0}: Unknown line {1}".format(parser.GetSource(),line) )
             else:
                 key = " ".join(tokens[0].strip().split())
                 value = tokens[1].strip()
@@ -234,6 +234,7 @@ class DscPcds(DscSection):
         self.subsection = subsection
         self._default = "_pcds"
         self._name = "Pcds"+subsection
+        self._seperator = "|"
     
 #<LibraryClasses> option parser for components.
 class DscComponentLibraryClasses(DscComponentSection):
@@ -660,7 +661,6 @@ class DscParser:
 
             #if !include, push the current file on the filestack, and open the new file to continue processing.
             if (line.startswith("!include")):
-                logging.info(line)
                 try: 
                     self.filestack.append((self.dscline, self.dscfh))
                     self.dscfh = open(self.resolvePath(line.split()[1]))
@@ -752,6 +752,9 @@ class Dsc(object):
 
     def __contains__(self, key):        
         return key in self.__sections
+
+    def __iter__(self):
+        return iter(self.__sections)
 
     def GetListOfSections(self):
         return list(self.__sections.keys())
