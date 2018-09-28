@@ -892,6 +892,14 @@ class DSCSectionManipulator(object):
     def KeyFilter(self, filterFunc):
         self._keyFilters.append(filterFunc)
         return self
+    
+    def ValueFilter(self, filterFunc):
+        self._valueFilters.append(filterFunc)
+        return self
+    
+    def SectionFilter(self, filterFunc):
+        self._sectionFilters.append(filterFunc)
+        return self
 
     def Reset(self):
         self.ClearFilters()
@@ -909,11 +917,11 @@ class DSCSectionManipulator(object):
     def _FilterSectKeys(self):
         keyValues = self._GetSectKeyValues()
         # run the section filters
-
+        keyValues = self._RunSectionFilters(keyValues)
         #Run the key filters
         keyValues = self._RunKeyFilters(keyValues)
-
         # run the value filters
+        keyValues = self._RunValueFilters(keyValues)
 
         return keyValues
     
@@ -924,13 +932,39 @@ class DSCSectionManipulator(object):
 
         return keyValues
 
+    def _RunSectionFilters(self,keyValues):
+        # run the key filters        
+        for KeyFilter in self._sectionFilters:            
+            keyValues[:] = [x for x in keyValues if KeyFilter(x[0])]
+
+        return keyValues
+    
+    def _RunValueFilters(self,keyValues):
+        # run the key filters        
+        for KeyFilter in self._valueFilters:            
+            keyValues[:] = [x for x in keyValues if KeyFilter(x[2])]
+
+        return keyValues
+
+    def GetKeys(self):
+        keys = self._FilterSectKeys()
+        return [key[1] for key in keys]
+
     def MapKeys(self, mapFunc, reason="MapKeys"):
         keys = self._FilterSectKeys()
         for section,key,_ in keys:
             dscSection = self._dsc._GetSection(section)
             newKey = mapFunc(key)
-            logging.info("Remapping {0} to {1} in {2}".format(key,newKey,section))
             dscSection.Rename(key,newKey,reason)
+
+        return self
+
+    def MapValues(self, mapFunc, reason="MapValues"):
+        keys = self._FilterSectKeys()
+        for section,key,value in keys:
+            dscSection = self._dsc._GetSection(section)
+            newValue = mapFunc(value)
+            dscSection.Update(key,newValue,reason)
 
         return self
 
