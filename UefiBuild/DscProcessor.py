@@ -5,7 +5,7 @@ from datetime import datetime
 import subprocess
 import argparse
 import hashlib
-from DscObject import Dsc
+from DscObject import Dsc, DscManipulator
 import PluginManager
 
 
@@ -24,9 +24,15 @@ class DscProcessor():
             logging.critical("Pre-Parsing failed!! {0}".format(status))
             return status
             
+        
         #request the plugins of our type from plugin manager
         for Descriptor in thebuilder.PluginManager.GetPluginsOfClass(PluginManager.IDscProcessorPlugin):
-            rc = Descriptor.Obj.do_transform("",thebuilder)
+            manipulator = DscManipulator(BaseDsc,Descriptor.Name)
+            try:
+                rc = Descriptor.Obj.do_transform(manipulator,thebuilder)
+            except Exception:
+                logging.error("DSC Plugin: {0} failed".format(str(Descriptor.Name)))
+                raise
 
         filename = thebuilder.mws.join(thebuilder.ws, thebuilder.env.GetValue("ACTIVE_PLATFORM"))
         filename = ".temp.".join(filename.split("."))

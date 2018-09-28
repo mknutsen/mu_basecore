@@ -112,7 +112,7 @@
    # Revision:MdePkg/Library/UefiMemoryAllocationLib/UefiMemoryAllocationLib.inf from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:179: scope=DscScopeLevel.default
   MemoryAllocationLib|MdePkg/Library/UefiMemoryAllocationLib/UefiMemoryAllocationLib.inf
 
- [LibraryClasses.]
+ [LibraryClasses]
    # Revision:MdeModulePkg/Library/AuthVariableLibNull/AuthVariableLibNull.inf from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:106: scope=DscScopeLevel.default
   AuthVariableLib|MdeModulePkg/Library/AuthVariableLibNull/AuthVariableLibNull.inf
    # Revision:MdePkg/Library/BaseLib/BaseLib.inf from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:40: scope=DscScopeLevel.default
@@ -307,7 +307,7 @@
    # Revision:0x0ffffc000000 from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:223: scope=DscScopeLevel.default
   gEfiMdePkgTokenSpaceGuid.PcdIoBlockBaseAddressForIpf|0x0ffffc000000
 
- [Components.]
+ [Components]
    # Revision:None from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:372: scope=DscScopeLevel.default
   MdeModulePkg/Application/BootManagerMenuApp/BootManagerMenuApp.inf
    # Revision:None from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:479: scope=DscScopeLevel.default
@@ -316,9 +316,9 @@
   MdeModulePkg/Application/HelloWorld/HelloWorld.inf
    # Revision:None from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:246: scope=DscScopeLevel.default
   MdeModulePkg/Application/MemoryProfileInfo/MemoryProfileInfo.inf
-   # Revision:<DscObject.DscComponent object at 0x0000018CB15619B0> from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:378: scope=DscScopeLevel.default
+   # Revision:<DscObject.DscComponent object at 0x0000021AF1DAC3C8> from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:378: scope=DscScopeLevel.default
   MdeModulePkg/Application/UiApp/UiApp.inf{
- # Revision:<DscObject.DscComponentLibraryClasses object at 0x0000018CB15619E8> from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:374: scope=DscScopeLevel.default
+ # Revision:<DscObject.DscComponentLibraryClasses object at 0x0000021AF1DAC400> from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:374: scope=DscScopeLevel.default
 		<LibraryClasses>
 		  # Revision:MdeModulePkg/Library/BootMaintenanceManagerUiLib/BootMaintenanceManagerUiLib.inf from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:377: scope=DscScopeLevel.default
  # Revision:MdeModulePkg/Library/BootManagerUiLib/BootManagerUiLib.inf from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:376: scope=DscScopeLevel.default
@@ -577,9 +577,9 @@
   MdeModulePkg/Universal/Acpi/BootGraphicsResourceTableDxe/BootGraphicsResourceTableDxe.inf
    # Revision:None from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:455: scope=DscScopeLevel.default
   MdeModulePkg/Universal/Acpi/FirmwarePerformanceDataTableDxe/FirmwarePerformanceDxe.inf
-   # Revision:<DscObject.DscComponent object at 0x0000018CB15759E8> from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:454: scope=DscScopeLevel.default
+   # Revision:<DscObject.DscComponent object at 0x0000021AF1DBA400> from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:454: scope=DscScopeLevel.default
   MdeModulePkg/Universal/Acpi/FirmwarePerformanceDataTablePei/FirmwarePerformancePei.inf{
- # Revision:<DscObject.DscComponentLibraryClasses object at 0x0000018CB1575A20> from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:452: scope=DscScopeLevel.default
+ # Revision:<DscObject.DscComponentLibraryClasses object at 0x0000021AF1DBA438> from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:452: scope=DscScopeLevel.default
 		<LibraryClasses>
 		  # Revision:MdeModulePkg/Library/LockBoxNullLib/LockBoxNullLib.inf from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:453: scope=DscScopeLevel.default
 		 LockBoxLib|MdeModulePkg/Library/LockBoxNullLib/LockBoxNullLib.inf
@@ -632,9 +632,9 @@
   MdeModulePkg/Universal/FaultTolerantWriteDxe/FaultTolerantWriteDxe.inf
    # Revision:None from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:437: scope=DscScopeLevel.default
   MdeModulePkg/Universal/FaultTolerantWritePei/FaultTolerantWritePei.inf
-   # Revision:<DscObject.DscComponent object at 0x0000018CB1575EF0> from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:474: scope=DscScopeLevel.default
+   # Revision:<DscObject.DscComponent object at 0x0000021AF1DBA908> from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:474: scope=DscScopeLevel.default
   MdeModulePkg/Universal/FileExplorerDxe/FileExplorerDxe.inf{
- # Revision:<DscObject.DscComponentLibraryClasses object at 0x0000018CB1575F28> from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:472: scope=DscScopeLevel.default
+ # Revision:<DscObject.DscComponentLibraryClasses object at 0x0000021AF1DBA940> from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:472: scope=DscScopeLevel.default
 		<LibraryClasses>
 		  # Revision:MdeModulePkg/Library/FileExplorerLib/FileExplorerLib.inf from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:473: scope=DscScopeLevel.default
 		 FileExplorerLib|MdeModulePkg/Library/FileExplorerLib/FileExplorerLib.inf
@@ -697,36 +697,36 @@
   MdeModulePkg/Universal/ReportStatusCodeRouter/Pei/ReportStatusCodeRouterPei.inf
    # Revision:None from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:431: scope=DscScopeLevel.default
   MdeModulePkg/Universal/ReportStatusCodeRouter/RuntimeDxe/ReportStatusCodeRouterRuntimeDxe.inf
-   # Revision:<DscObject.DscComponent object at 0x0000018CB1575048> from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:405: scope=DscScopeLevel.default
+   # Revision:<DscObject.DscComponent object at 0x0000021AF1DACA20> from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:405: scope=DscScopeLevel.default
   MdeModulePkg/Universal/ResetSystemPei/ResetSystemPei.inf{
- # Revision:<DscObject.DscComponentLibraryClasses object at 0x0000018CB1575080> from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:403: scope=DscScopeLevel.default
+ # Revision:<DscObject.DscComponentLibraryClasses object at 0x0000021AF1DACA58> from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:403: scope=DscScopeLevel.default
 		<LibraryClasses>
 		  # Revision:MdeModulePkg/Library/BaseResetSystemLibNull/BaseResetSystemLibNull.inf from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:404: scope=DscScopeLevel.default
 		 ResetSystemLib|MdeModulePkg/Library/BaseResetSystemLibNull/BaseResetSystemLibNull.inf
 
 
 }
-   # Revision:<DscObject.DscComponent object at 0x0000018CB1575198> from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:409: scope=DscScopeLevel.default
+   # Revision:<DscObject.DscComponent object at 0x0000021AF1DACB70> from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:409: scope=DscScopeLevel.default
   MdeModulePkg/Universal/ResetSystemRuntimeDxe/ResetSystemRuntimeDxe.inf{
- # Revision:<DscObject.DscComponentLibraryClasses object at 0x0000018CB1575160> from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:407: scope=DscScopeLevel.default
+ # Revision:<DscObject.DscComponentLibraryClasses object at 0x0000021AF1DACB38> from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:407: scope=DscScopeLevel.default
 		<LibraryClasses>
 		  # Revision:MdeModulePkg/Library/BaseResetSystemLibNull/BaseResetSystemLibNull.inf from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:408: scope=DscScopeLevel.default
 		 ResetSystemLib|MdeModulePkg/Library/BaseResetSystemLibNull/BaseResetSystemLibNull.inf
 
 
 }
-   # Revision:<DscObject.DscComponent object at 0x0000018CB1575B70> from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:460: scope=DscScopeLevel.default
+   # Revision:<DscObject.DscComponent object at 0x0000021AF1DBA588> from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:460: scope=DscScopeLevel.default
   MdeModulePkg/Universal/SectionExtractionDxe/SectionExtractionDxe.inf{
- # Revision:<DscObject.DscComponentLibraryClasses object at 0x0000018CB1575BA8> from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:458: scope=DscScopeLevel.default
+ # Revision:<DscObject.DscComponentLibraryClasses object at 0x0000021AF1DBA5C0> from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:458: scope=DscScopeLevel.default
 		<LibraryClasses>
 		  # Revision:MdeModulePkg/Library/DxeCrc32GuidedSectionExtractLib/DxeCrc32GuidedSectionExtractLib.inf from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:459: scope=DscScopeLevel.default
 		 NULL|MdeModulePkg/Library/DxeCrc32GuidedSectionExtractLib/DxeCrc32GuidedSectionExtractLib.inf
 
 
 }
-   # Revision:<DscObject.DscComponent object at 0x0000018CB1575CF8> from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:464: scope=DscScopeLevel.default
+   # Revision:<DscObject.DscComponent object at 0x0000021AF1DBA710> from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:464: scope=DscScopeLevel.default
   MdeModulePkg/Universal/SectionExtractionPei/SectionExtractionPei.inf{
- # Revision:<DscObject.DscComponentLibraryClasses object at 0x0000018CB1575CC0> from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:462: scope=DscScopeLevel.default
+ # Revision:<DscObject.DscComponentLibraryClasses object at 0x0000021AF1DBA6D8> from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:462: scope=DscScopeLevel.default
 		<LibraryClasses>
 		  # Revision:MdeModulePkg/Library/PeiCrc32GuidedSectionExtractLib/PeiCrc32GuidedSectionExtractLib.inf from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:463: scope=DscScopeLevel.default
 		 NULL|MdeModulePkg/Library/PeiCrc32GuidedSectionExtractLib/PeiCrc32GuidedSectionExtractLib.inf
@@ -813,9 +813,9 @@
   MdeModulePkg/Universal/SmmCommunicationBufferDxe/SmmCommunicationBufferDxe.inf
    # Revision:None from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:521: scope=DscScopeLevel.default
   MdeModulePkg/Universal/StatusCodeHandler/Smm/StatusCodeHandlerSmm.inf
-   # Revision:<DscObject.DscComponent object at 0x0000018CB157F7B8> from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:518: scope=DscScopeLevel.default
+   # Revision:<DscObject.DscComponent object at 0x0000021AF1DC81D0> from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:518: scope=DscScopeLevel.default
   MdeModulePkg/Universal/Variable/RuntimeDxe/VariableRuntimeDxe.inf{
- # Revision:<DscObject.DscComponentLibraryClasses object at 0x0000018CB157F748> from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:513: scope=DscScopeLevel.default
+ # Revision:<DscObject.DscComponentLibraryClasses object at 0x0000021AF1DC8160> from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:513: scope=DscScopeLevel.default
 		<LibraryClasses>
 		  # Revision:MdeModulePkg/Universal/Variable/RuntimeDxe/PropertyBasedVarLockLib.inf from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:517: scope=DscScopeLevel.default
  # Revision:MdeModulePkg/Library/VarCheckPcdLib/VarCheckPcdLib.inf from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:516: scope=DscScopeLevel.default
@@ -828,9 +828,9 @@
 
 
 }
-   # Revision:<DscObject.DscComponent object at 0x0000018CB157F5F8> from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:511: scope=DscScopeLevel.default
+   # Revision:<DscObject.DscComponent object at 0x0000021AF1DBAFD0> from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:511: scope=DscScopeLevel.default
   MdeModulePkg/Universal/Variable/RuntimeDxe/VariableSmm.inf{
- # Revision:<DscObject.DscComponentLibraryClasses object at 0x0000018CB157F630> from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:506: scope=DscScopeLevel.default
+ # Revision:<DscObject.DscComponentLibraryClasses object at 0x0000021AF1DC8048> from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:506: scope=DscScopeLevel.default
 		<LibraryClasses>
 		  # Revision:MdeModulePkg/Universal/Variable/RuntimeDxe/PropertyBasedVarLockLib.inf from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:510: scope=DscScopeLevel.default
  # Revision:MdeModulePkg/Library/VarCheckPcdLib/VarCheckPcdLib.inf from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:509: scope=DscScopeLevel.default
@@ -863,9 +863,9 @@
   MdeModulePkg/Universal/Network/UefiPxeBcDxe/UefiPxeBcDxe.inf
 
  [Components.IA32, Components.X64, Components.IPF, Components.ARM, Components.AARCH64]
-   # Revision:<DscObject.DscComponent object at 0x0000018CB157F358> from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:496: scope=DscScopeLevel.default
+   # Revision:<DscObject.DscComponent object at 0x0000021AF1DBAD30> from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:496: scope=DscScopeLevel.default
   MdeModulePkg/Core/Dxe/DxeMain.inf{
- # Revision:<DscObject.DscComponentLibraryClasses object at 0x0000018CB157F390> from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:494: scope=DscScopeLevel.default
+ # Revision:<DscObject.DscComponentLibraryClasses object at 0x0000021AF1DBAD68> from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:494: scope=DscScopeLevel.default
 		<LibraryClasses>
 		  # Revision:MdeModulePkg/Library/DxeCrc32GuidedSectionExtractLib/DxeCrc32GuidedSectionExtractLib.inf from C:\git\corebuild\MdeModulePkg\MdeModulePkg.dsc:495: scope=DscScopeLevel.default
 		 NULL|MdeModulePkg/Library/DxeCrc32GuidedSectionExtractLib/DxeCrc32GuidedSectionExtractLib.inf

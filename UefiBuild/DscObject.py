@@ -5,7 +5,6 @@ import os
 import collections
 from operator import itemgetter, attrgetter
 
-#TODO rewrite this to be more friendly
 
 from enum import Enum
 #Maybe like default -> silicon provider -> silicon family -> OEM -> device
@@ -39,6 +38,12 @@ class DscValue(object):
         self._revisions = 1
         self._history = [history]
         self._scope = [scope]
+
+    def Renamed(self,oldValue,history):
+        self._revisions += 1
+        self._value.insert(0,self._value[0]) # put the new value at the front of the array
+        self._history.insert(0,"Renamed Key from %s = %s" % (oldValue,history))
+        self._scope.insert(0,self._scope[0])
         
     def set(self, newValue, history, scope):
 
@@ -71,7 +76,12 @@ class DscValue(object):
     def History(self):
         def _ConvertHistory(index):
             return " # Revision:%s from %s: scope=%s" %(self._value[index],self._history[index], self._scope[index])
-        historyList = list(map(_ConvertHistory, range(len(self._value))))
+        def _ConvertHistorySingle(index):
+            return " # From: %s: scope=%s" %(self._history[index], self._scope[index])
+        if len(self._value) == 1:
+            historyList = list(map(_ConvertHistorySingle, range(len(self._value))))
+        else:
+            historyList = list(map(_ConvertHistory, range(len(self._value))))
         return str.join("\n",historyList)
 
     def __lt__(self, other):
@@ -142,8 +152,8 @@ class DscSection(object):
             return None
         else:
             store[key2] = store[key1]
-            store[key1] = None
-            store[key2].Update
+            del store[key1]
+            store[key2].Renamed(key1,history)
 
     def WriteDefines(self,stream):
         #Global defines may be used in FDF, so print them here.
@@ -218,7 +228,9 @@ class DscLibraryClasses(DscSection):
         self._libclasses = {}
         self.subsection = subsection
         self._default = "_libclasses"
-        self._name = "LibraryClasses."+subsection
+        self._name = "LibraryClasses"
+        if self.subsection != "":
+             self._name = self._name+"."+self.subsection
         self._seperator = "|"
     
     def sortedLibClasses(self):
@@ -278,13 +290,23 @@ class DscComponentBuildOptions(DscComponentSection):
         self._name = "BuildOptions"
         self._default = "_options"
 
+class DscComponentDefines(DscComponentSection):
+    def __init__(self):
+        super().__init__()
+        self._overrides = {}
+        self._name = "Defines"
+        self._default = "_overrides"
+
+
 #Component parser.
 #Parses the inf path,and then delegates parsing of options subsections to the option parsers above.
 class DscComponent(DscSection):
 
     OptionTypes = {"LibraryClasses" : DscComponentLibraryClasses,
                    "Pcds"           : DscComponentPcds,
-                   "BuildOptions"   : DscComponentBuildOptions}
+                   "BuildOptions"   : DscComponentBuildOptions,
+                   "Defines"        : DscComponentDefines,
+                   }
 
     def __init__(self, subsection):
         super().__init__()
@@ -351,7 +373,9 @@ class DscComponents(DscSection):
         self._components = {}
         self._default = "_components"
         self.subsection = subsection
-        self._name = "Components."+subsection
+        self._name = "Components"
+        if self.subsection != "":
+             self._name = "Components."+self.subsection
 
     def Parse(self, parser):
         while(True):            
@@ -796,6 +820,17 @@ class Dsc(object):
             return []
         else:            
             return self.__sections[section].GetKeys()
+
+    def _GetSectionTypeKeyValues(self,sectionType):
+        keyValues = []
+        for section in self.__sections:
+            if section.startswith(sectionType):
+                sectionKeys = self._GetSectionKeys(section)
+                for key in sectionKeys:
+                    value = str(self.GetValue(section,key))
+                    keyValues.append((section,key,value))
+        return keyValues
+        
             
     def _GetSection(self,section):
         if (section not in self.__sections):
@@ -841,6 +876,114 @@ class Dsc(object):
     def ParseSection(self, section, parser):
         self.__sections[section].Parse(parser)
 
+###
+## Manipulators
+###
+
+class DSCSectionManipulator(object):
+    def __init__(self, baseDSC, section, source):
+        self._dsc = baseDSC
+        self._section = section
+        self._source = source
+        self._keyFilters = []
+        self._sectionFilters = []
+        self._valueFilters = []
+
+    def KeyFilter(self, filterFunc):
+        self._keyFilters.append(filterFunc)
+        return self
+
+    def Reset(self):
+        self.ClearFilters()
+
+    def ClearFilters(self):
+        self._keyFilters = []
+        self._valueFilters = []
+        self._sectionFilters = []
+
+    def _GetSectKeyValues(self):
+        keyValues = self._dsc._GetSectionTypeKeyValues(self._section)
+        logging.info(keyValues)
+        return keyValues
+
+    def _FilterSectKeys(self):
+        keyValues = self._GetSectKeyValues()
+        # run the section filters
+
+        #Run the key filters
+        keyValues = self._RunKeyFilters(keyValues)
+
+        # run the value filters
+
+        return keyValues
+    
+    def _RunKeyFilters(self,keyValues):
+        # run the key filters        
+        for KeyFilter in self._keyFilters:            
+            keyValues[:] = [x for x in keyValues if KeyFilter(x[1])]
+
+        return keyValues
+
+    def MapKeys(self, mapFunc, reason="MapKeys"):
+        keys = self._FilterSectKeys()
+        for section,key,_ in keys:
+            dscSection = self._dsc._GetSection(section)
+            newKey = mapFunc(key)
+            logging.info("Remapping {0} to {1} in {2}".format(key,newKey,section))
+            dscSection.Rename(key,newKey,reason)
+
+        return self
+
+
+
+class DSCDefinesSectionManipulator(DSCSectionManipulator):
+    def __init__(self, baseDSC, source):
+        super().__init__(baseDSC,"Defines", source)        
+
+class DSCComponentSectionManipulator(DSCSectionManipulator):
+    def __init__(self, baseDSC, source):
+        super().__init__(baseDSC,"Components", source)
+        
+
+class DscManipulator(object):
+    def __init__(self, baseDSC, source, scope=DscScopeLevel.default):
+        self.__dsc = baseDSC
+        self.__source = source
+        self.__scope = scope
+    
+        self.defines = self.GetSection("Defines")
+        self.skuids = self.GetSection("SkuIds")
+        self.libraryclasses = self.GetSection("LibraryClasses")
+        self.pcds = self.GetSection("Pcds")
+        self.components = self.GetSection("Components")
+        self.buildoptions = self.GetSection("BuildOptions")
+
+    # Gets a list of all the current selection
+    def GetListOfSections(self):
+        return list(self.__dsc.Sections.keys())
+
+    # This will get the section Type
+    def GetSection(self,section):
+        if section.startswith("Components"):
+            return DSCComponentSectionManipulator(self.__dsc,self.__source)
+        if section.startswith("SkuIds"):
+            return DSCSectionManipulator(self.__dsc,"SkuIds",self.__source)
+        if section.startswith("LibraryClasses"):
+            return DSCSectionManipulator(self.__dsc,"LibraryClasses",self.__source)
+        if section.startswith("Pcds"):
+            return DSCSectionManipulator(self.__dsc,"Pcds",self.__source)
+        if section.startswith("Defines"):
+            return DSCDefinesSectionManipulator(self.__dsc,self.__source)        
+        if section.startswith("BuildOptions"):
+            return DSCSectionManipulator(self.__dsc,"BuildOptions",self.__source)
+
+        raise Exception("Unrecognized section trying to be requested: %s" % section)
+        return None
+
+    #Gets a section and then returns it the section type
+    def AddOrGetSection(self, section):
+        self.__dsc.AddSection(section)
+        return self.GetSection(section)
 
 ##
 # HELPER FUNCTIONS
