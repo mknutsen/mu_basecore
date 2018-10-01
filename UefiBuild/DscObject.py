@@ -105,7 +105,9 @@ class DscSection(object):
         self._seperator = "="
         self._indent = " "
     
-   
+    def __iter__(self):
+        store = getattr(self,self._default)
+        return iter(store)
     def Get(self, key):
         store = getattr(self,self._default)
         if (key not in store):
@@ -825,10 +827,24 @@ class Dsc(object):
         keyValues = []
         for section in self.__sections:
             if section.startswith(sectionType):
-                sectionKeys = self._GetSectionKeys(section)
-                for key in sectionKeys:
-                    value = str(self.GetValue(section,key))
-                    keyValues.append((section,key,value))
+                if section.startswith("Components"):
+                    sectionKeys = self._GetSectionKeys(section)
+                    for key in sectionKeys:
+                        module = self.GetValue(section,key)
+                        if module is None:
+                            keyValues.append((section,key,None,None,None))
+                        else:
+                            for subsection in module:
+                                subSectionValue = module.GetRaw(subsection)
+                                for subSectionKey in subSectionValue:
+                                    value = str(subSectionValue.GetRaw(subSectionKey))
+                                    keyValues.append((section,key,subsection,subSectionKey,value))
+                
+                else:
+                    sectionKeys = self._GetSectionKeys(section)
+                    for key in sectionKeys:
+                        value = str(self.GetValue(section,key))
+                        keyValues.append((section,key,value))
         return keyValues
         
             
@@ -888,7 +904,11 @@ class DSCSectionManipulator(object):
         self._keyFilters = []
         self._sectionFilters = []
         self._valueFilters = []
-
+    # the data for a section is
+    # 0 => component subsection (PcdsFixedAtBuild.IPF)
+    # 1 => Key (gEfiMdePkgTokenSpaceGuid.PcdIoBlockBaseAddressForIpf)
+    # 2 => Value (0x0ffffc000000)
+    
     def KeyFilter(self, filterFunc):
         self._keyFilters.append(filterFunc)
         return self
@@ -911,7 +931,6 @@ class DSCSectionManipulator(object):
 
     def _GetSectKeyValues(self):
         keyValues = self._dsc._GetSectionTypeKeyValues(self._section)
-        logging.info(keyValues)
         return keyValues
 
     def _FilterSectKeys(self):
@@ -927,24 +946,15 @@ class DSCSectionManipulator(object):
     
     def _RunKeyFilters(self,keyValues):
         # run the key filters        
-        for KeyFilter in self._keyFilters:            
-            keyValues[:] = [x for x in keyValues if KeyFilter(x[1])]
-
-        return keyValues
+       return self._RunFilter(self._keyFilters,keyValues,1)
 
     def _RunSectionFilters(self,keyValues):
-        # run the key filters        
-        for KeyFilter in self._sectionFilters:            
-            keyValues[:] = [x for x in keyValues if KeyFilter(x[0])]
-
-        return keyValues
+        # run the key filters
+       return self._RunFilter(self._sectionFilters,keyValues,0)
     
     def _RunValueFilters(self,keyValues):
         # run the key filters        
-        for KeyFilter in self._valueFilters:            
-            keyValues[:] = [x for x in keyValues if KeyFilter(x[2])]
-
-        return keyValues
+        return self._RunFilter(self._valueFilters,keyValues,2)
 
     def GetKeys(self):
         keys = self._FilterSectKeys()
@@ -952,31 +962,123 @@ class DSCSectionManipulator(object):
 
     def MapKeys(self, mapFunc, reason="MapKeys"):
         keys = self._FilterSectKeys()
-        for section,key,_ in keys:
-            dscSection = self._dsc._GetSection(section)
-            newKey = mapFunc(key)
-            dscSection.Rename(key,newKey,reason)
+        #TODO filter down to just the unique combos of 0 and 1
+        for data in keys:
+            dscSection = self._dsc._GetSection(data[0])
+            newKey = mapFunc(data[1])
+            dscSection.Rename(data[1],newKey,reason)
 
         return self
 
     def MapValues(self, mapFunc, reason="MapValues"):
         keys = self._FilterSectKeys()
-        for section,key,value in keys:
-            dscSection = self._dsc._GetSection(section)
-            newValue = mapFunc(value)
-            dscSection.Update(key,newValue,reason)
+        for data in keys:
+            dscSection = self._dsc._GetSection(data[0])
+            newValue = mapFunc(data[2])
+            dscSection.Update(data[1],newValue,reason)
 
         return self
+
+    def _RunFilter(self, filterList, keyValues, tupleIndex):
+        for KeyFilter in filterList:
+            index = tupleIndex
+            if isinstance(KeyFilter, str):
+                keyValues[:] = [x for x in keyValues if str(x[index]) == KeyFilter or str(x[index]).startswith(KeyFilter)]
+                
+            else:
+                #keyValues[:] = [x for x in keyValues if KeyFilter(x[0])]
+                keyValues[:] = [x for x in keyValues if KeyFilter(x[index])]
+
+        return keyValues
 
 
 
 class DSCDefinesSectionManipulator(DSCSectionManipulator):
     def __init__(self, baseDSC, source):
-        super().__init__(baseDSC,"Defines", source)        
+        super().__init__(baseDSC,"Defines", source)
 
 class DSCComponentSectionManipulator(DSCSectionManipulator):
-    def __init__(self, baseDSC, source):
-        super().__init__(baseDSC,"Components", source)
+    def __init__(self, baseDSC, section, source):
+        super().__init__(baseDSC,section, source)
+        self._infFilters = []
+        self._subsectionFilters = []
+
+    # the data for a compoenent section is
+    # 0 => Section component subsection (Components.x64)
+    # 1 => Module (MdeModulePkg/Universal/ResetSystemRuntimeDxe/ResetSystemRuntimeDxe.inf)
+    # 2 => SubSection (<LibraryClasses>)
+    # 3 => Key (ResetSystemLib)
+    # 4 => Value (MdeModulePkg/Library/BaseResetSystemLibNull/BaseResetSystemLibNull.inf)
+    
+    def _FilterSectKeys(self):
+        keyValues = super()._FilterSectKeys() 
+        keyValues = self._RunSubSectionFilters(keyValues)
+        keyValues = self._RunModuleFilters(keyValues)        
+        return keyValues
+  
+    def _RunValueFilters(self,keyValues):
+        # run the key filters        
+        return self._RunFilter(self._valueFilters,keyValues,2)
+
+    def _RunModuleFilters(self, keyValues):
+        # run the key filters
+        return self._RunFilter(self._infFilters,keyValues,1)
+
+    def _RunSubSectionFilters(self,keyValues):
+        # run the key filters
+        return self._RunFilter(self._subsectionFilters,keyValues,2)
+
+    def _RunKeyFilters(self,keyValues):
+        # run the key filters        
+        return self._RunFilter(self._keyFilters,keyValues,3)
+    
+    def _RunValueFilters(self,keyValues):
+        # run the key filters        
+        return self._RunFilter(self._valueFilters,keyValues,4)
+
+    def ModuleFilter(self, filterFunc):
+        self._infFilters.append(filterFunc)
+        return self
+
+    def MapModules(self, mapFunc, reason="MapKeys"):        
+        super().MapKeys(mapFunc,reason)
+        return self
+    
+    def MapKeys(self, mapFunc, reason="MapKeys"):
+        keys = self._FilterSectKeys()
+        for data in keys:
+            if data[3] is None:
+                continue
+            dscSection = self._dsc._GetSection(data[0])
+            dscSection = dscSection.GetRaw(data[1])
+            dscSection = dscSection.GetRaw(data[2])
+            newKey = mapFunc(data[3])
+            dscSection.Rename(data[3],newKey,reason)
+
+        return self
+
+    def MapValues(self, mapFunc, reason="MapKeys"):
+        keys = self._FilterSectKeys()
+        for data in keys:
+            if data[3] is None:
+                continue
+            dscSection = self._dsc._GetSection(data[0])
+            dscSection = dscSection.GetRaw(data[1])
+            dscSection = dscSection.GetRaw(data[2])
+            newValue = mapFunc(data[4])
+            dscSection.Update(data[3],newValue,reason)
+
+        return self
+        
+    def SubsectionFilter(self, filterFunc):
+        self._subsectionFilters.append(filterFunc)
+        return self
+
+    def ClearFilters(self):
+        super().ClearFilters()
+        self._infFilters = []
+        self._subsectionFilters = []
+
         
 
 class DscManipulator(object):
@@ -999,17 +1101,11 @@ class DscManipulator(object):
     # This will get the section Type
     def GetSection(self,section):
         if section.startswith("Components"):
-            return DSCComponentSectionManipulator(self.__dsc,self.__source)
-        if section.startswith("SkuIds"):
-            return DSCSectionManipulator(self.__dsc,"SkuIds",self.__source)
-        if section.startswith("LibraryClasses"):
-            return DSCSectionManipulator(self.__dsc,"LibraryClasses",self.__source)
-        if section.startswith("Pcds"):
-            return DSCSectionManipulator(self.__dsc,"Pcds",self.__source)
+            return DSCComponentSectionManipulator(self.__dsc,section,self.__source)
         if section.startswith("Defines"):
-            return DSCDefinesSectionManipulator(self.__dsc,self.__source)        
-        if section.startswith("BuildOptions"):
-            return DSCSectionManipulator(self.__dsc,"BuildOptions",self.__source)
+            return DSCDefinesSectionManipulator(self.__dsc,self.__source)
+        else:
+            return DSCSectionManipulator(self.__dsc,section,self.__source)
 
         raise Exception("Unrecognized section trying to be requested: %s" % section)
         return None
