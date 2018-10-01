@@ -32,7 +32,7 @@ class BaseTestLibClass(object):
         self.ip.SetPackagePaths(self.pp)
 
         #DSC Parser
-        self.dp = DscParser()
+        self.dp = DscObject()
         self.dp.SetBaseAbsPath(self.ws)
         self.dp.SetPackagePaths(self.pp)
 
