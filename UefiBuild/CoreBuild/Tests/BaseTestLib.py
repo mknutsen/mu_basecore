@@ -32,7 +32,7 @@ class BaseTestLibClass(object):
         self.ip.SetPackagePaths(self.pp)
 
         #DSC Parser
-        self.dp = DscObject()
+        self.dp = DscParser()
         self.dp.SetBaseAbsPath(self.ws)
         self.dp.SetPackagePaths(self.pp)
 
@@ -122,7 +122,7 @@ class BaseTestLibClass(object):
         if self.env is not None:
             return self.env.GetValue("ACTIVE_PLATFORM") 
         else:
-            return -1
+            return ""
 
     #
     # Returns the active platform if the envdict is inherited
@@ -131,7 +131,7 @@ class BaseTestLibClass(object):
         if self.env is not None:
             return self.env.GetValue("TARGET")
         else:
-            return -1
+            return ""
 
     #
     # Run a shell commmand and print the output to the log file

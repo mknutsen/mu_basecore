@@ -76,6 +76,7 @@ IgnoreList = [  "nt32pkg.dsc",                      #NT32 pkg requires windows h
 
 import Tests.BaseTestLib
 from Tests.XmlArtifact import XmlOutput
+import ShellEnvironment
 
 try:
     from StringIO import StringIO
@@ -339,6 +340,40 @@ def SetLogFile(filename, loghandle = None):
     logging.info("Log Started: " + datetime.strftime(datetime.now(), "%A, %B %d, %Y %I:%M%p" ))
     logging.info("Running Python version: " + str(sys.version_info))
     return logfile,filelogger
+
+#Run test for platform
+#test to run
+#ws workspace
+#pp package path
+#args is sys.argv
+#ignoreList = modules to ignore
+#env is enviroment setup
+
+def RunTest(test, ws, pp, args, ignoreList=[], env=None, summary = None, xmlartifact = None):
+    
+    if test is None:
+        return 0
+
+    overall_success = False
+    logging.critical("\n\n------------------------------------------------------------------------------------------------------------------------------------\n")
+    try:
+        test_object = test(ws, pp, args, ignoreList, env, summary, xmlartifact)
+        ret = test_object.RunTest()
+        if (ret != 0):
+            logging.critical("Test Failure")
+            
+        else:
+            logging.critical("Test Success")
+            overall_success = True
+
+        logging.critical("\n\n__________________________________________________________________\n")
+    except Exception:
+        logging.error("EXCEPTION THROWN BY TEST")
+        raise
+    if overall_success:
+        return 0
+    else:
+        return -1
     
 class FindBuildableFiles(object):
     def __init__(self,dir):
@@ -351,7 +386,7 @@ class FindBuildableFiles(object):
                         logging.debug("%s - Ignored" % File)
                         continue                    
                     self._list.append(os.path.join(Root, File))
-                if File.lower().endswith('.mu.json'): #temporarily turned off
+                if File.lower().endswith('.mu.dsc.json'): #temporarily turned off
                     fileWoExtension = os.path.splitext(os.path.basename(str(File)))[0]
                     dscFile = os.path.join(Root, fileWoExtension+ ".temp.dsc")
                     from GenerateDSC import JsonToDSCGenerator 
@@ -409,6 +444,7 @@ if __name__ == '__main__':
     pp = WORKSPACE_PATH
     bp = WORKSPACE_PATH
 
+    #TODO add all argument parsing into here
     PKG_PATH = ws
     parser = argparse.ArgumentParser()
     parser.add_argument (
@@ -456,12 +492,6 @@ if __name__ == '__main__':
     summary_log = Summary()
     #Generate consumable XML object
     xml_artifact = XmlOutput()
-
-    # The SDE should have already been initialized.
-    # This call *should* only return the handles to the
-    # pre-initialized environment objects.
-    build_env = {}
-    shell_env = {}
 
     #Setup the main console logger differently if VSMODE is on.  
     # This allows more debug messages out
@@ -522,7 +552,7 @@ if __name__ == '__main__':
     if(not levelset):
         console.setLevel(logging.CRITICAL)
         console.setFormatter(formatter)
-    logger.addHandler(console)
+    #logger.addHandler(console)
 
     overall_success = True
     logfile = os.path.join(ws, "Build", "BuildLogs", "BUILDLOG_MASTER.txt")
@@ -538,15 +568,30 @@ if __name__ == '__main__':
     logging.info("Running Python version: " + str(sys.version_info))
 
     testsRun = 0
-
+    from VarDict import VarDict 
     #TODO create iterator that will figure out what we need to build
     for buildableFile in FindBuildableFiles(pkg_dir):
         #testsRun+= 1
-        for test in Test_List:
+        for testname,test in Test_List:
             logging.critical("Running {0} test on {1}".format(test,buildableFile))
             #setup the enviroment
+            env = VarDict()
+            
+            env.SetValue("PRODUCT_NAME", "CORE", "Platform Hardcoded")
+            env.SetValue("TARGET_ARCH", "IA32 X64", "Platform Hardcoded")
+            env.SetValue("LaunchBuildLogProgram", "Notepad", "default - will fail if already set", True)
+            env.SetValue("LaunchLogOnSuccess", "False", "default - do not log when successful")
+            env.SetValue("LaunchLogOnError", "True", "default - will fail if already set", True)
+            
+            env.SetValue("ACTIVE_PLATFORM",buildableFile,"Override for building this DSC")
+            '''
+            # Bring up the common minimum environment.
+            #CommonBuildEntry.update_process(BASECORE_PATH, PROJECT_SCOPE)
+            '''
             #Run each test on it
+            RunTest(test, ws,pp, sys.argv, IgnoreList, env, summary_log,xml_artifact)
             #figure out if we failed or not
+            
    
     
     #Print Overall Success
