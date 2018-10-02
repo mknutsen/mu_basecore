@@ -44,35 +44,6 @@ logfile = None
 #
 ##
 
-IgnoreList = [  "nt32pkg.dsc",                      #NT32 pkg requires windows headers which are not supplied on build system
-                "Nt32PkgMsCapsule.dsc",             #NT32 capsule pkg requires windows headers which are not supplied on build system
-                "IntelFrameworkModulePkg.dsc",      #Plan to depricate
-                "IntelFrameworkPkg.dsc",            #Plan to depricate
-                "ArmCrashDumpDxe.dsc",               ## 
-                "ArmPkg.dsc",
-                "ArmPlatformPkg.dsc",
-                "ArmVirtQemu.dsc",                  ## Requires OvmfPkg, which we don't want yet.
-                "ArmVirtQemuKernel.dsc",            ## Requires OvmfPkg, which we don't want yet.
-                "ArmVirtXen.dsc",                   ## Requires OvmfPkg, which we don't want yet.
-                "EmbeddedPkg.dsc",
-                "MsSampleFmpDevicePkg.dsc",         #Sample package requires user input to build
-                "MicrocodeCapsulePdb.dsc",          #Not buildable
-                "MicrocodeCapsuleTxt.dsc",          #Not buildable
-                "vtf.inf",                          #Not buildable - Shares GUID with resetvector
-                "vtf0.inf",                         #Not buildable - Shares GUID with resetvector
-                "microcode.inf",                    #Not buildable - No sources
-                "useridentifymanagerdxe.inf",       #Template with #error
-                "pwdcredentialproviderdxe.inf",     #Template with #error
-                "usbcredentialproviderdxe.inf",     #Template with #error
-                "openssllib",                       #Third party lib that does not follow library header practice
-                "intrinsiclib",                     #Lib that does not follow library header practice
-                "logodxe.inf",                      #Temporarily ignored due to idf file
-                "opalpassworddxe.inf",              #Temproarily ignored awaiting refactor
-                "tcg2configdxe.inf",                #Temproarily ignored awaiting refactor
-                "SafeIntLibUnitTests.inf",          #Ignore this unit test for now, in future we'll ignore all of them
-                "ArmMmuLib",                        #Remove this once ArmPkg is added to code tree
-                "ArmPkg/ArmPkg.dec"                 #Remove this once ArmPkg is added to code tree
-]
 
 import Tests.BaseTestLib
 from Tests.XmlArtifact import XmlOutput

@@ -46,8 +46,11 @@ class EnvEntry(object):
     # Function used to override the value if option allows it
     #
     def SetValue(self, value, comment, overridable = False):
+        if (value == self.Value):
+            return True
+            
         if(not self.Overrideable):
-            logging.debug("Can't set value [%s] as it isn't overrideable" % value)
+            logging.debug("Can't set value [%s] as it isn't overrideable. Previous comment %s" % (value,self.Comment))
             return False
 
         self.Value = value
@@ -88,7 +91,7 @@ class VarDict(object):
         key = k.upper()
         en = self.GetEntry(key)
         value = str(v)
-        self.Logger.debug("Key %s set to value %s" % (k, v))
+        self.Logger.debug("Trying to set key %s to value %s" % (k, v))
         if(en == None):
             #new entry
             en = EnvEntry(value, comment, overridable)

@@ -154,6 +154,23 @@ class IUefiHelperPlugin(object):
 	def RegisterHelpers(self, obj):
 		pass
 
+###
+# Plugin that supports adding Extension or helper methods
+# to the build environment
+###
+class IMuBuildPlugin(object):
+	
+	##
+	# Function that allows plugin to register its functions with the
+	# obj.  
+	# @param obj[in, out]: HelperFunctions object that allows functional 
+	# registration.  
+	#
+	def RunMu(self, workspace="", packagespath="", args=[], ignorelist = None, environment = None, summary = None, xmlartifact = None):
+		pass
+
+
+
 
 
 

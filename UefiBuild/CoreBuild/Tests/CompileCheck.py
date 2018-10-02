@@ -32,7 +32,7 @@ class CompileCheckClass(BaseTestLibClass):
         if ret != 0: #failure:
             if self.summary is not None:
                 self.summary.AddError("Compiler Error: "+str(ret), 2)
-             # If XML object esists, add result
+                # If XML object esists, add result
             if self.xmlartifact is not None:
                 self.xmlartifact.add_failure("Compile Check", "Compile Check " + os.path.basename(AP) + " " + str(self.GetTarget()),"Compile Check." + os.path.basename(AP), (AP + " Compile failed with " + str(ret) + " errors", "Compile_FAILED"), time.time()-starttime)
             return ret
