@@ -154,14 +154,14 @@ class DependencyCheckClass(BaseTestLibClass):
                     temp = item
                 else:
                     temp = temp + ", " + item + " "
-            self.summary.AddResult("Packages declared in " + AP + ": " + temp, 3)
+            self.summary.AddResult("Packages declared in " + str(AP) + ": " + temp, 3)
             self.summary.AddResult(str(overall_status) + " error(s) in " + AP + " Dependency Check", 2)
 
         # If XML object exists, add results
         if overall_status is not 0 and self.xmlartifact is not None:
-            self.xmlartifact.add_failure("DependencyCheck", "DependencyCheck " + os.path.basename(AP) + " " + self.GetTarget(),"DependencyCheck." + os.path.basename(AP), (AP + " DependencyCheck failed with " + str(overall_status) + " errors", "DEPENDENCYCHECK_FAILED"), time.time()-starttime)
+            self.xmlartifact.add_failure("DependencyCheck", "DependencyCheck " + os.path.basename(AP) + " " + str(self.GetTarget()),"DependencyCheck." + os.path.basename(AP), (AP + " DependencyCheck failed with " + str(overall_status) + " errors", "DEPENDENCYCHECK_FAILED"), time.time()-starttime)
         elif self.xmlartifact is not None:
-            self.xmlartifact.add_success("DependencyCheck", "DependencyCheck " + os.path.basename(AP) + " " + self.GetTarget(),"DependencyCheck." + os.path.basename(AP), time.time()-starttime, "DependencyCheck Success")
+            self.xmlartifact.add_success("DependencyCheck", "DependencyCheck " + os.path.basename(AP) + " " + str(self.GetTarget()),"DependencyCheck." + os.path.basename(AP), time.time()-starttime, "DependencyCheck Success")
 
         return overall_status
 

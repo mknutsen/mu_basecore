@@ -14,6 +14,9 @@ class DSCCheckClass(BaseTestLibClass):
         AP = self.GetActivePlatform()
         AP_Root = os.path.dirname(AP)
 
+        if self.GetTarget() is None:
+            logging.error("DSCCHECK: Unknown target")
+
         #Get INF Files
         INFFiles = self.WalkDirectoryForExtension([".inf"], AP_Root, self.ignorelist)
         INFFiles = [x.lower() for x in INFFiles]
@@ -43,8 +46,8 @@ class DSCCheckClass(BaseTestLibClass):
 
         # If XML object esists, add result
         if overall_status is not 0 and self.xmlartifact is not None:
-            self.xmlartifact.add_failure("DSCCheck", "DSCCheck " + os.path.basename(AP) + " " + self.GetTarget(),"DSCCheck." + os.path.basename(AP), (AP + " DSCCheck failed with " + str(overall_status) + " errors", "DSCCHECK_FAILED"), time.time()-starttime)
+            self.xmlartifact.add_failure("DSCCheck", "DSCCheck " + os.path.basename(AP) + " " + str(self.GetTarget()),"DSCCheck." + os.path.basename(AP), (AP + " DSCCheck failed with " + str(overall_status) + " errors", "DSCCHECK_FAILED"), time.time()-starttime)
         elif self.xmlartifact is not None:
-            self.xmlartifact.add_success("DSCCheck", "DSCCheck " + os.path.basename(AP) + " " + self.GetTarget(),"DSCCheck." + os.path.basename(AP), time.time()-starttime, "DSCCheck Success")
+            self.xmlartifact.add_success("DSCCheck", "DSCCheck " + os.path.basename(AP) + " " + str(self.GetTarget()),"DSCCheck." + os.path.basename(AP), time.time()-starttime, "DSCCheck Success")
 
         return overall_status

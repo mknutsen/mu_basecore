@@ -88,6 +88,7 @@ class VarDict(object):
         key = k.upper()
         en = self.GetEntry(key)
         value = str(v)
+        self.Logger.debug("Key %s set to value %s" % (k, v))
         if(en == None):
             #new entry
             en = EnvEntry(value, comment, overridable)

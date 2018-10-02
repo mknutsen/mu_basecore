@@ -588,7 +588,7 @@ def main(my_workspace_path, my_project_scope):
     #Unless they are specified in ignore file
     else:
         #Find all DSC files
-        logging.critical("Walking " + ws + " for DSC/JSON files")
+        logging.critical("Walking " + PKG_PATH + " for DSC/JSON files")
         DSCFiles = list()
         for Root, Dirs, Files in os.walk(PKG_PATH):
             for File in Files:

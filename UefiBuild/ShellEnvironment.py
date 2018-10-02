@@ -136,3 +136,11 @@ def GetBuildVars():
   if not rootVarDict:
     rootVarDict = VarDict.VarDict()
   return rootVarDict
+
+def ClearBuildVars():
+  global rootVarDict
+  rootVarDict = None
+
+def ClearEnivorment():
+  global rootEnvironment
+  rootEnvironment = None

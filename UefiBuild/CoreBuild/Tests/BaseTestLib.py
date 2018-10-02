@@ -10,6 +10,7 @@ from Uefi.EdkII.Parsers.DecParser import *
 from Uefi.EdkII.Parsers.InfParser import *
 from Uefi.EdkII.Parsers.DscParser import *
 
+from DscObject import Dsc
 
 
 class BaseTestLibClass(object):
@@ -32,6 +33,9 @@ class BaseTestLibClass(object):
         self.ip.SetPackagePaths(self.pp)
 
         #DSC Parser
+        #self.dp = Dsc()
+        #TODO: modify the DSCObject to be a replacement for the EDK version?
+        # Eventually this will just be a part of the enviroment we bring up?
         self.dp = DscParser()
         self.dp.SetBaseAbsPath(self.ws)
         self.dp.SetPackagePaths(self.pp)

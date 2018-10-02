@@ -389,7 +389,7 @@ class FindBuildableFiles(object):
                 if File.lower().endswith('.mu.dsc.json'): #temporarily turned off
                     fileWoExtension = os.path.splitext(os.path.basename(str(File)))[0]
                     dscFile = os.path.join(Root, fileWoExtension+ ".temp.dsc")
-                    from GenerateDSC import JsonToDSCGenerator 
+                    from DSCGenerator import JsonToDSCGenerator 
                     JsonToDSCGenerator(os.path.join(Root,File)).write(dscFile)
                     #DSCFiles.append(dscFile)
                 
@@ -568,30 +568,41 @@ if __name__ == '__main__':
     logging.info("Running Python version: " + str(sys.version_info))
 
     testsRun = 0
-    from VarDict import VarDict 
+    import ShellEnvironment
     #TODO create iterator that will figure out what we need to build
     for buildableFile in FindBuildableFiles(pkg_dir):
         #testsRun+= 1
         for testname,test in Test_List:
+            # Generate the packages that we need to include
+            MODULE_PACKAGES = GenerateModulesDependencies(buildableFile, ws)
+            MODULE_PACKAGES.append(pp)
+
+            module_pkg_paths = os.pathsep.join(pkg_name for pkg_name in MODULE_PACKAGES)
+            
             logging.critical("Running {0} test on {1}".format(test,buildableFile))
             #setup the enviroment
-            env = VarDict()
+            
+            env = ShellEnvironment.GetBuildVars()
+
+            CommonBuildEntry.update_process(BASECORE_PATH, PROJECT_SCOPE)
             
             env.SetValue("PRODUCT_NAME", "CORE", "Platform Hardcoded")
             env.SetValue("TARGET_ARCH", "IA32 X64", "Platform Hardcoded")
+            env.SetValue("TARGET", "DEBUG", "Platform Hardcoded")
             env.SetValue("LaunchBuildLogProgram", "Notepad", "default - will fail if already set", True)
             env.SetValue("LaunchLogOnSuccess", "False", "default - do not log when successful")
             env.SetValue("LaunchLogOnError", "True", "default - will fail if already set", True)
             
             env.SetValue("ACTIVE_PLATFORM",buildableFile,"Override for building this DSC")
-            '''
+            
             # Bring up the common minimum environment.
-            #CommonBuildEntry.update_process(BASECORE_PATH, PROJECT_SCOPE)
-            '''
+            
+            
             #Run each test on it
-            RunTest(test, ws,pp, sys.argv, IgnoreList, env, summary_log,xml_artifact)
+            RunTest(test, ws, module_pkg_paths, sys.argv, IgnoreList, env, summary_log,xml_artifact)
             #figure out if we failed or not
             
+            ShellEnvironment.ClearBuildVars()
    
     
     #Print Overall Success
