@@ -30,8 +30,8 @@ class Compiler_plugin(IMuBuildPlugin):
                 summary.AddError("Compiler Error: "+str(ret), 2)
                 # If XML object esists, add result
             if xmlartifact is not None:
-                xmlartifact.add_failure("Compile Check", "Compile Check " + os.path.basename(AP) + " " + str(self.GetTarget()),"Compile Check." + os.path.basename(AP), (AP + " Compile failed with " + str(ret) + " errors", "Compile_FAILED"), time.time()-starttime)
-            return ret
+                xmlartifact.add_failure("Compile", "Compile " + os.path.basename(AP) + " " + str(self.GetTarget()),"Compile." + os.path.basename(AP), (AP + " Compile failed with error code " + str(ret), "Compile_FAILED_"+str(ret)), time.time()-starttime)
+            return 1
         else:
             if summary is not None:
                 summary.AddResult("0 error(s) in " + AP + " Compile", 2)
@@ -57,18 +57,3 @@ class Compiler_plugin(IMuBuildPlugin):
             return self._env.GetValue("TARGET")
         else:
             return ""
-
-
-
-    '''def __init__(self, workspace, packagespath, args, ignorelist = None, environment = None, summary = None, xmlartifact = None):
-        BaseTestLibClass.__init__(self, workspace, packagespath, args, ignorelist, environment, summary, xmlartifact)
-        logging.critical("Compile Check Test Loaded")
-        self._ws = workspace
-        self._pp = packagespath
-        self._args = args
-        self._ignoreList = ignorelist
-        self._env = environment
-        self._summary = summary
-        self._xml = xmlartifact
-    '''
-       

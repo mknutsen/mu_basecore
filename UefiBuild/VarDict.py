@@ -48,7 +48,7 @@ class EnvEntry(object):
     def SetValue(self, value, comment, overridable = False):
         if (value == self.Value):
             return True
-            
+
         if(not self.Overrideable):
             logging.debug("Can't set value [%s] as it isn't overrideable. Previous comment %s" % (value,self.Comment))
             return False
@@ -73,7 +73,14 @@ class VarDict(object):
     def __copy__(self):
         new_copy = VarDict()
         new_copy.Logger = self.Logger
-        new_copy.Dstore = self.Dstore.copy()
+
+        new_copy.Dstore = {}
+        for key in self.Dstore:
+            entry = self.GetEntry(key)
+            value = entry.Value
+            comment = entry.Comment
+            override = entry.Overrideable
+            new_copy.SetValue(key,value,comment,override)
         return new_copy
 
 
