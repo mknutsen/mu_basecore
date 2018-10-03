@@ -49,3 +49,4 @@ BuildConfig.conf
 /UnixPkg/
 /Vlv2DeviceRefCodePkg/
 /Vlv2TbltDevicePkg/
+/temp_modules
