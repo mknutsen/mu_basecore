@@ -1396,6 +1396,18 @@ UpdatePciInfo (
       break;
     }
 
+    // MS_CHANGE begin
+    if (Ptr->AddrTranslationOffset == PCI_MAX_BAR) {  // 6 == Rom Bar
+      if (Ptr->SpecificFlag == 0) {                   // 0 == Skip ROM
+          PciIoDevice->IgnoreROM = TRUE;
+          Ptr++;
+      } else {
+        DEBUG((DEBUG_ERROR,"Unsupported IncompatiblePci option\n"));
+      }
+      continue;
+    }
+    // MS_CHANGE end
+
     for (BarIndex = 0; BarIndex < PCI_MAX_BAR; BarIndex++) {
       if ((Ptr->AddrTranslationOffset != MAX_UINT64) &&
           (Ptr->AddrTranslationOffset != MAX_UINT8) &&

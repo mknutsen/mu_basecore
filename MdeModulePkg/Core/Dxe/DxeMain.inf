@@ -216,5 +216,9 @@
 # EVENT_TYPE_PERIODIC_TIMER ## PRODUCES  # DxeCore signals timer event.
 #
 
+
+[BuildOptions]
+  DEBUG_*_*_CC_FLAGS  = /FAcs
+
 [UserExtensions.TianoCore."ExtraFiles"]
   DxeCoreExtra.uni
