@@ -58,6 +58,8 @@ def generate_modules_dependencies(module, workspace):
 #    branch = release/20180529
 #    commit = 5d4a51b4a8d20e5ff1f75adeb969697b1cc201cb
 ##
+
+##TODO: just read in the depedencies from the json file we origionally read from
 def read_dependency_file(file):
     
     try:
