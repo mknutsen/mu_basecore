@@ -99,11 +99,12 @@ class DscValue(object):
 
 class DscSection(object):
     def __init__(self):        
-        self._default = "__defines"
-        self.__defines = {}
+        self._default = "_defines"
+        self._defines = {}
         self._name = "DEFAULT_NAME"
         self._seperator = "="
         self._indent = " "
+        self._comment = ""
     
     def __iter__(self):
         store = getattr(self,self._default)
@@ -147,6 +148,13 @@ class DscSection(object):
             store[key] = DscValue(value,history, scope)
         else:
             store[key].set(value, history, scope)
+    
+    def UpdateDefine(self, key, value, history, scope=DscScopeLevel.default):
+        store = self._defines
+        if (key not in store):
+            store[key] = DscValue(value,history, scope)
+        else:
+            store[key].set(value, history, scope)
 
     def Rename(self, key1, key2, history):
         store = getattr(self,self._default)
@@ -159,7 +167,7 @@ class DscSection(object):
 
     def WriteDefines(self,stream):
         #Global defines may be used in FDF, so print them here.
-        for k in sorted(self.__defines):
+        for k in sorted(self._defines):
             stream.write("%s%s\n" % (self._indent,self.GetHistory(k)))
             if (self.Get(k) is None):
                 stream.write("#")    
@@ -170,21 +178,52 @@ class DscSection(object):
             (eof, line) = parser.nextLine()
             if (eof):
                 break
-            
             #At this point we should have a define element. It's either a macro (prefixed with "DEFINE") or a variable.
             #treat them the same, but if it is a DEFINE, normalize the whitespace between the DEFINE and the variable name to a single space.
+            
             tokens = line.split(self._seperator)
+            if line.startswith("DEFINE "):
+                tokens = line[6:].split(self._seperator)
+                
             if len(tokens) != 2:
                 logging.critical("ERROR IN DSC PARSER at {0}: Unknown line {1}".format(parser.GetSource(),line) )
             else:
                 key = " ".join(tokens[0].strip().split())
                 value = tokens[1].strip()
-                self.Update(key,value,parser.GetSource())
+                if line.startswith("DEFINE "):
+                    self.UpdateDefine(key,value,parser.GetSource())
+                else:
+                    self.Update(key,value,parser.GetSource())
+                    
 
     def WriteName(self,stream):
         stream.write("%s[%s]\n" % (self._indent,self._name))
 
+    def WriteComment(self,stream):
+        _comment = type(self).comment.strip()
+        if len(_comment) == 0:
+            return
+        stream.write("################################################################################\n")
+        commentLines = _comment.split("#")
+        commentIndex = 0
+        for comment in commentLines:
+            commentIndex += 1
+            if len(comment) > 78:
+                breakPoint = 78
+                # walk until we find a break in a word
+                while comment[breakPoint] != " " and breakPoint > 50:
+                    breakPoint -= 1
+                comment2 = comment[breakPoint:]
+                comment = comment[0:breakPoint]
+                commentLines.insert(commentIndex,comment2)
+                
+            stream.write("# %s\n" % comment)
+            
+        
+        stream.write("################################################################################\n")
+
     def Write(self, stream):
+        
         self.WriteName(stream)
         store = getattr(self,self._default)
         self.WriteDefines(stream)
@@ -717,7 +756,7 @@ class DscParser:
                 line = ""
                 eof = True
             
-        return (eof, line)
+        
     ##
     #return the current file and linenumber we are on
     ##
