@@ -1,13 +1,54 @@
-from Tests.BaseTestLib import *
+import logging
+from PluginManager import IMuBuildPlugin
 import copy
+import os
+import time
 
-class DependencyCheckClass(BaseTestLibClass):
+from Uefi.EdkII.Parsers.DecParser import *
+from Uefi.EdkII.Parsers.InfParser import *
 
-    def __init__(self, workspace, packagespath, args, ignorelist = None, environment = None, summary = None, xmlartifact = None):
-        BaseTestLibClass.__init__(self, workspace, packagespath, args, ignorelist, environment, summary, xmlartifact)
+class DependencyCheck(IMuBuildPlugin):
+
+      #
+    # Returns the active platform if the envdict is inherited
+    #
+    def GetActivePlatform(self):
+        if self._env is not None:
+            return self._env.GetValue("ACTIVE_PLATFORM") 
+        else:
+            return ""
+
+    #
+    # Returns the active platform if the envdict is inherited
+    #
+    def GetTarget(self):
+        if self._env is not None:
+            return self._env.GetValue("TARGET")
+        else:
+            return ""
+
+
+    def RunBuildPlugin(self, workspace="", packagespath="", args=[], ignorelist = list(), environment = None, summary = None, xmlartifact = None):
+        self._env = environment
+        self.ws = workspace
+        self.pp = packagespath
+        self.ignorelist = ignorelist
+        self.summary = summary
+        self.xmlartifact = xmlartifact
+
+         #INF Parser
+        self.ip = InfParser()
+        self.ip.SetBaseAbsPath(self.ws)
+        self.ip.SetPackagePaths(self.pp)
+
+        #DEC Parser
+        self.decp = DecParser()
+        self.decp.SetBaseAbsPath(self.ws)
+        self.decp.SetPackagePaths(self.pp)
+
+
         logging.critical("Dependency Test Loaded")
 
-    def RunTest(self):
         overall_status = 0
         starttime = time.time()
         logging.critical("RUNNING DEPENDENCY CHECK")
@@ -20,11 +61,11 @@ class DependencyCheckClass(BaseTestLibClass):
         DEC_Used = list()
 
         #Get INF Files
-        INFFiles = self.WalkDirectoryForExtension([".inf"], AP_Root, self.ignorelist)
+        INFFiles = self.WalkDirectoryForExtension([".inf"], AP_Root, ignorelist)
 
         #For each INF file
         for file in INFFiles:
-            if not file.lower() in self.ignorelist:
+            if not file.lower() in ignorelist:
                 #Reset parser lists and parse file
                 self.ip.__init__()
                 self.ip.SetBaseAbsPath(self.ws)

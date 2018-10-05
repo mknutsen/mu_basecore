@@ -1,12 +1,41 @@
-from Tests.BaseTestLib import *
+import logging
+from PluginManager import IMuBuildPlugin
+import os 
+import time
 
-class DSCCheckClass(BaseTestLibClass):
+from Uefi.EdkII.Parsers.DscParser import *
+from Uefi.EdkII.Parsers.DecParser import *
+from Uefi.EdkII.Parsers.InfParser import *
 
-    def __init__(self, workspace, packagespath, args, ignorelist = None, environment = None, summary = None, xmlartifact = None):
-        BaseTestLibClass.__init__(self, workspace, packagespath, args, ignorelist, environment, summary, xmlartifact)
+class DSCCheck(IMuBuildPlugin):
+     #
+    # Returns the active platform if the envdict is inherited
+    #
+    def GetActivePlatform(self):
+        if self._env is not None:
+            return self._env.GetValue("ACTIVE_PLATFORM") 
+        else:
+            return ""
+
+    #
+    # Returns the active platform if the envdict is inherited
+    #
+    def GetTarget(self):
+        if self._env is not None:
+            return self._env.GetValue("TARGET")
+        else:
+            return ""
+
+
+    def RunBuildPlugin(self, workspace, packagespath, args, ignorelist = None, environment = None, summary = None, xmlartifact = None):
+        self._env = environment
+        self.ws = workspace
+        self.pp = packagespath
+        self.summary = summary
+        self.xmlartifact = xmlartifact
         logging.critical("DSCCheck Test Loaded")
 
-    def RunTest(self):
+   
         overall_status = 0
         starttime = time.time()
 
@@ -18,11 +47,17 @@ class DSCCheckClass(BaseTestLibClass):
             logging.error("DSCCHECK: Unknown target")
 
         #Get INF Files
-        INFFiles = self.WalkDirectoryForExtension([".inf"], AP_Root, self.ignorelist)
+        INFFiles = self.WalkDirectoryForExtension([".inf"], AP_Root, ignorelist)
         INFFiles = [x.lower() for x in INFFiles]
         INFFiles = [os.path.basename(x) for x in INFFiles]
 
-        self.dp.__init__()
+        #DSC Parser
+        #self.dp = Dsc()
+        #TODO: modify the DSCObject to be a replacement for the EDK version?
+        # Eventually this will just be a part of the enviroment we bring up?
+        self.dp = DscParser()
+        self.dp.SetBaseAbsPath(self.ws)
+        self.dp.SetPackagePaths(self.pp)
         self.dp.ParseFile(self.FindFile(AP))
 
         #lowercase for matching

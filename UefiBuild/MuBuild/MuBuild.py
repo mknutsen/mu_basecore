@@ -161,7 +161,7 @@ if __name__ == '__main__':
             module_pkg_paths = os.pathsep.join(pkg_name for pkg_name in MODULE_PACKAGES)
             
             #self, workspace="", packagespath="", args=[], ignorelist = None, environment = None, summary = None, xmlartifact = None
-            rc = Descriptor.Obj.RunMu(WORKSPACE_PATH, module_pkg_paths,sys.argv,None,env, summary_log, xml_artifact)
+            rc = Descriptor.Obj.RunBuildPlugin(WORKSPACE_PATH, module_pkg_paths,sys.argv,list(),env, summary_log, xml_artifact)
 
             if(rc != 0):
                 failure_num += 1

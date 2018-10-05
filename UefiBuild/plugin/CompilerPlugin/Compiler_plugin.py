@@ -12,7 +12,7 @@ class Compiler_plugin(IMuBuildPlugin):
     # @param obj[in, out]: HelperFunctions object that allows functional 
     # registration.  
     #
-    def RunMu(self, workspace="", packagespath="", args=[], ignorelist = None, environment = None, summary = None, xmlartifact = None):
+    def RunBuildPlugin(self, workspace="", packagespath="", args=[], ignorelist = None, environment = None, summary = None, xmlartifact = None):
         self._env = environment
         logging.critical("COMPILECHECK: Compile check test running")
         #WorkSpace, PackagesPath, pluginlist, args, BuildConfigFile=None
