@@ -166,7 +166,7 @@ class IMuBuildPlugin(object):
     # @param obj[in, out]: HelperFunctions object that allows functional 
     # registration.  
     #
-    def RunBuildPlugin(self, workspace="", packagespath="", args=[], ignorelist = None, environment = None, summary = None, xmlartifact = None):
+    def RunBuildPlugin(self, package_to_run_on, workspace="", packagespath="", args=[], ignorelist = None, environment = None, summary = None, xmlartifact = None):
         pass
 
     # looks in workspace and the package paths
@@ -268,11 +268,15 @@ class HelperFunctions(object):
         if(name in self.RegisteredFunctions.keys()):
             return True
         else:
-            return false
+            return False
 
 
     def LoadFromPluginManager(self,pluginManager):
         for Descriptor in pluginManager.GetPluginsOfClass(IUefiHelperPlugin):
+
+            logging.info(Descriptor)
+            if self.HasFunction(Descriptor.Name):
+                continue
             logging.debug("Helper Plugin Register: %s", Descriptor.Name)
             Descriptor.Obj.RegisterHelpers(self)
 

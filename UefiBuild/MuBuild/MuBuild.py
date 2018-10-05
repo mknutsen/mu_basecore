@@ -45,40 +45,13 @@ def strip_json_from_file(filepath):
 
 def get_mu_config():
     parser = argparse.ArgumentParser(description='Run the Mu Build')
-    parser.add_argument ('-c', '--mu_config', dest = 'mu_config', required = True, type=str, help ='Provide the Mu config ')
+    parser.add_argument ('-c', '--mu_config', dest = 'mu_config', required = True, type=str, help ='Provide the Mu config relative to the current working directory')
     parser.add_argument (
-    '-p', '--pkg','--pkg-dir', dest = 'pkg', required = False, type=str,help = 'The package or folder you want to test/compile'
+    '-p', '--pkg','--pkg-dir', dest = 'pkg', required = False, type=str,help = 'The package or folder you want to test/compile relative to the Mu Config'
     )
     #programArg0 = sys.argv[0]
     args, sys.argv = parser.parse_known_args() 
     return args
-
-# An iterator that you can iterate over the list of buildable files
-class FindBuildableFiles(object):
-    def __init__(self,PKG_PATH, helper = None): #dir is the folder or file that we want to walk over
-        self._list = list()
-        DSCFiles = list()
-
-        for Root, Dirs, Files in os.walk(PKG_PATH):
-            for File in Files:
-                if File.lower().endswith('.dsc'):
-                    if File.lower().endswith(".temp.dsc"):
-                        logging.debug("%s - Ignored" % File)
-                    else:                  
-                        self._list.append(os.path.join(Root, File))
-                if File.lower().endswith('.mu.dsc.json'): #temporarily turned off
-                    fileWoExtension = os.path.splitext(os.path.basename(str(File)))[0]
-                    dscFile = os.path.join(Root, fileWoExtension+ ".temp.dsc")
-                    helper.generate_dsc_from_json(os.path.join(Root,File),dscFile)
-                    #register as helper function
-                    #from DSCGenerator import JsonToDSCGenerator 
-                    #JsonToDSCGenerator(os.path.join(Root,File)).write(dscFile)
-                    #self._list.append(dscFile)
-                    #DSCFiles.append(dscFile)
-                
-    def __iter__(self):
-        return iter(self._list)
-
 
 #
 # Main driver of Project Mu Builds
@@ -88,7 +61,7 @@ if __name__ == '__main__':
     #Parse command line arguments
     buildArgs = get_mu_config()
     mu_config_filepath = os.path.abspath(buildArgs.mu_config)
-    mu_pk_path = os.path.abspath(buildArgs.pkg)
+    mu_pk_path = buildArgs.pkg
 
     if mu_config_filepath is None or not os.path.isfile(mu_config_filepath):
         raise Exception("Invalid path to mu.json file for build: ", mu_config_filepath)
@@ -101,10 +74,14 @@ if __name__ == '__main__':
     PROJECT_SCOPE += mu_config["Scopes"]
     print("Running ProjectMu Build: ", mu_config["Name"])
     print("WorkSpace: ", WORKSPACE_PATH)
-
+    
     # if a package isn't specifed as needing to be built- we are going to 
-    if mu_pk_path is None:
-        mu_pk_path = WORKSPACE_PATH
+    if mu_pk_path is None and mu_config["Packages"]:
+        packageList = mu_config["Packages"]
+    elif mu_pk_path:
+        packageList = [mu_pk_path]
+    else:
+        packageList = []
 
     #Setup the logging to the file as well as the console
     MuLogging.clean_build_logs(WORKSPACE_PATH)
@@ -112,6 +89,12 @@ if __name__ == '__main__':
     
     # Bring up the common minimum environment.
     CommonBuildEntry.update_process(WORKSPACE_PATH, PROJECT_SCOPE)
+    env = ShellEnvironment.GetBuildVars()
+    
+    #set up our enviroment
+    env.SetValue("PRODUCT_NAME", "CORE", "Platform Hardcoded")
+    env.SetValue("TARGET_ARCH", "IA32 X64", "Platform Hardcoded")
+    env.SetValue("TARGET", "DEBUG", "Platform Hardcoded")
     
     # The SDE should have already been initialized.
     # This call *should* only return the handles to the
@@ -133,38 +116,41 @@ if __name__ == '__main__':
     helper = PluginManager.HelperFunctions()
     helper.LoadFromPluginManager(pluginManager)
 
-    for buildableFile in FindBuildableFiles(mu_pk_path,helper):
+    logging.critical(packageList)
+    for pkgToRunOn in packageList:
         #
         # run all loaded MuBuild Plugins/Tests
         #
-        _, loghandle = MuLogging.setup_logging(WORKSPACE_PATH,"BUILDLOG_{0}.txt".format(os.path.basename(buildableFile)))
+        _, loghandle = MuLogging.setup_logging(WORKSPACE_PATH,"BUILDLOG_{0}.txt".format(pkgToRunOn))
         print("\n-----------------------------------------------------------")
-        print("Running against: {0}".format(buildableFile))
-        for Descriptor in pluginManager.GetPluginsOfClass(PluginManager.IMuBuildPlugin):
+        logging.info("\tPackage Running: {0}".format(pkgToRunOn))
+        print("\tPackage Running: {0}".format(pkgToRunOn))
+        print("\n-----------------------------------------------------------")
+        ShellEnvironment.CheckpointBuildVars()
+        env = ShellEnvironment.GetBuildVars()
 
+        #find or generate the DSC for this particular package
+        dscPath = PackageResolver.get_dsc_for_pacakge(pkgToRunOn,WORKSPACE_PATH)
+        env.SetValue("ACTIVE_PLATFORM",dscPath,"Override for building this DSC")
+
+        for Descriptor in pluginManager.GetPluginsOfClass(PluginManager.IMuBuildPlugin):
             
             total_num +=1
             ShellEnvironment.CheckpointBuildVars()
             env = ShellEnvironment.GetBuildVars()
 
-            #set up our enviroment
-            env.SetValue("PRODUCT_NAME", "CORE", "Platform Hardcoded")
-            env.SetValue("TARGET_ARCH", "IA32 X64", "Platform Hardcoded")
-            env.SetValue("TARGET", "DEBUG", "Platform Hardcoded")
-            env.SetValue("LaunchBuildLogProgram", "Notepad", "default - will fail if already set", True)
-            env.SetValue("LaunchLogOnSuccess", "False", "default - do not log when successful")
-            env.SetValue("LaunchLogOnError", "True", "default - will fail if already set", True)
-            
-            env.SetValue("ACTIVE_PLATFORM",buildableFile,"Override for building this DSC")
-
             CommonBuildEntry.update_process(WORKSPACE_PATH, PROJECT_SCOPE)
             #Generate our module pcokages
-            MODULE_PACKAGES = PackageResolver.generate_modules_dependencies(buildableFile, WORKSPACE_PATH)
+            MODULE_PACKAGES = list() 
             MODULE_PACKAGES.append(WORKSPACE_PATH)
             module_pkg_paths = os.pathsep.join(pkg_name for pkg_name in MODULE_PACKAGES)
-            
-            #self, workspace="", packagespath="", args=[], ignorelist = None, environment = None, summary = None, xmlartifact = None
-            rc = Descriptor.Obj.RunBuildPlugin(WORKSPACE_PATH, module_pkg_paths,sys.argv,list(),env, summary_log, xml_artifact)
+            try:
+                #self, workspace="", packagespath="", args=[], ignorelist = None, environment = None, summary = None, xmlartifact = None
+                rc = Descriptor.Obj.RunBuildPlugin(pkgToRunOn,WORKSPACE_PATH, module_pkg_paths,sys.argv,list(),env, summary_log, xml_artifact)
+            except Exception as exp:
+                logging.critical(exp)
+                summary_log.AddError("Exception thrown by {0} in package {1}\n{2}".format(Descriptor.Name,pkgToRunOn,str(exp)),2)
+                rc = 1
 
             if(rc != 0):
                 failure_num += 1
@@ -179,8 +165,16 @@ if __name__ == '__main__':
             #revert to the checkpoint we created previously
             ShellEnvironment.RevertBuildVars()
         #Finished plugin loop
-        MuLogging.stop_logging(loghandle)
+        
+        MuLogging.stop_logging(loghandle) #stop the logging for this particularbuild file
+        ShellEnvironment.RevertBuildVars()
     #Finished builldable file loop
+
+    
+    #Print summary struct
+    summary_log.print_status(WORKSPACE_PATH)
+    #write the XML artifiact
+    xml_artifact.write_file(os.path.join(WORKSPACE_PATH, "Build", "BuildLogs", "TestSuites.xml"))
 
     print("______________________________________________________________________")
       #Print Overall Success
@@ -190,7 +184,3 @@ if __name__ == '__main__':
     else:
         logging.critical("Overall Build Status: Success")
     
-    #Print summary struct
-    summary_log.print_status(WORKSPACE_PATH)
-    #write the XML artifiact
-    xml_artifact.write_file(os.path.join(WORKSPACE_PATH, "Build", "BuildLogs", "TestSuites.xml"))

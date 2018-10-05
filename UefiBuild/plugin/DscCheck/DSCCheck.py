@@ -27,20 +27,22 @@ class DSCCheck(IMuBuildPlugin):
             return ""
 
 
-    def RunBuildPlugin(self, workspace, packagespath, args, ignorelist = None, environment = None, summary = None, xmlartifact = None):
+    def RunBuildPlugin(self, package_to_run_on, workspace, packagespath, args, ignorelist = None, environment = None, summary = None, xmlartifact = None):
         self._env = environment
         self.ws = workspace
         self.pp = packagespath
         self.summary = summary
         self.xmlartifact = xmlartifact
-        logging.critical("DSCCheck Test Loaded")
-
-   
+        
         overall_status = 0
         starttime = time.time()
 
-        logging.critical("RUNNING DSC CHECK")
         AP = self.GetActivePlatform()
+        if AP is None or AP is "" or not os.path.isfile(AP):
+            xmlartifact.add_skipped("DSCCheck", "DSCCheck " + package_to_run_on + " " + str(self.GetTarget()),"DSCCheck." + package_to_run_on, time.time()-starttime, "DSCCheck Skipped")
+            summary.AddResult("1 warning(s) in " + packageToBuild + " Compile. DSC not found.", 2)
+            return 0
+
         AP_Root = os.path.dirname(AP)
 
         if self.GetTarget() is None:

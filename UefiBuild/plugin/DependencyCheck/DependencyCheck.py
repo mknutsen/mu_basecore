@@ -28,7 +28,7 @@ class DependencyCheck(IMuBuildPlugin):
             return ""
 
 
-    def RunBuildPlugin(self, workspace="", packagespath="", args=[], ignorelist = list(), environment = None, summary = None, xmlartifact = None):
+    def RunBuildPlugin(self, package_to_run_on, workspace="", packagespath="", args=[], ignorelist = list(), environment = None, summary = None, xmlartifact = None):
         self._env = environment
         self.ws = workspace
         self.pp = packagespath
@@ -54,8 +54,9 @@ class DependencyCheck(IMuBuildPlugin):
         logging.critical("RUNNING DEPENDENCY CHECK")
 
         #Get current platform
-        AP = self.GetActivePlatform()
-        AP_Root = os.path.dirname(AP)
+        AP = package_to_run_on
+      
+        AP_Root = os.path.join(workspace,package_to_run_on)
 
         DEC_Dict = dict()
         DEC_Used = list()

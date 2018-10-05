@@ -11,5 +11,17 @@
 
     "DependencyTest": {
 
-    }
+    },
+    "Dependencies": [
+    ],
+    "Packages":[
+        "MdeModulePkg",
+        "MdePkg",
+        "MsUnitTestPkg",
+        "NetworkPkg",
+        "PcAtChipsetPkg",
+        "PerformancePkg",
+        "UefiCpuPkg",
+        "SecurityPkg"
+    ]
 }

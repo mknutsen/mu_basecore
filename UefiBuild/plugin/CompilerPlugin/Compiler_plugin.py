@@ -12,7 +12,7 @@ class Compiler_plugin(IMuBuildPlugin):
     # @param obj[in, out]: HelperFunctions object that allows functional 
     # registration.  
     #
-    def RunBuildPlugin(self, workspace="", packagespath="", args=[], ignorelist = None, environment = None, summary = None, xmlartifact = None):
+    def RunBuildPlugin(self, packageToBuild, workspace="", packagespath="", args=[], ignorelist = None, environment = None, summary = None, xmlartifact = None):
         self._env = environment
         logging.critical("COMPILECHECK: Compile check test running")
         #WorkSpace, PackagesPath, pluginlist, args, BuildConfigFile=None
@@ -20,6 +20,11 @@ class Compiler_plugin(IMuBuildPlugin):
         starttime = time.time()
 
         AP = self.GetActivePlatform()
+        if AP is None or not os.path.isfile(AP):
+            xmlartifact.add_skipped("Compile", "Compile " + packageToBuild + " " + str(self.GetTarget()),"Compile." + packageToBuild, time.time()-starttime, "Compile Skipped")
+            summary.AddResult("1 warning(s) in " + packageToBuild + " Compile. DSC not found.", 2)
+            return 0
+
         AP_Root = os.path.dirname(AP)
 
         uefiBuilder = UefiBuilder(workspace,packagespath, [], args)
@@ -27,7 +32,7 @@ class Compiler_plugin(IMuBuildPlugin):
         ret = uefiBuilder.Go()
         if ret != 0: #failure:
             if summary is not None:
-                summary.AddError("Compiler Error: "+str(ret), 2)
+                summary.AddResult("1 error(s) in " + AP + " Compile. Error Code:"+str(ret), 2)
                 # If XML object esists, add result
             if xmlartifact is not None:
                 xmlartifact.add_failure("Compile", "Compile " + os.path.basename(AP) + " " + str(self.GetTarget()),"Compile." + os.path.basename(AP), (AP + " Compile failed with error code " + str(ret), "Compile_FAILED_"+str(ret)), time.time()-starttime)
