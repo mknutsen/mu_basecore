@@ -25,6 +25,8 @@ import PluginManager
 from XmlArtifact import XmlOutput
 import CommonBuildEntry
 import ShellEnvironment
+from Summary import Summary
+import PackageResolver
 
 PROJECT_SCOPE = ("project_mu",)
 TEMP_MODULE_DIR = "temp_modules"
@@ -43,10 +45,10 @@ def strip_json_from_file(filepath):
             out += a
         return out
 
-def Setup_logging(filename=None, loghandle = None):
+def setup_logging(filename=None, loghandle = None):
 
     if loghandle is not None:
-        Stop_logging(loghandle)
+        stop_logging(loghandle)
 
     
     if filename is None:
@@ -80,7 +82,7 @@ def Setup_logging(filename=None, loghandle = None):
 
     return logfile,filelogger
 
-def Stop_logging(loghandle):
+def stop_logging(loghandle):
     loghandle.close()
     logging.getLogger('').removeHandler(loghandle)
 
@@ -110,184 +112,14 @@ class FindBuildableFiles(object):
                 if File.lower().endswith('.mu.dsc.json'): #temporarily turned off
                     fileWoExtension = os.path.splitext(os.path.basename(str(File)))[0]
                     dscFile = os.path.join(Root, fileWoExtension+ ".temp.dsc")
-                    from DSCGenerator import JsonToDSCGenerator 
-                    JsonToDSCGenerator(os.path.join(Root,File)).write(dscFile)
+                    #register as helper function
+                    #from DSCGenerator import JsonToDSCGenerator 
+                    #JsonToDSCGenerator(os.path.join(Root,File)).write(dscFile)
                     #self._list.append(dscFile)
                     #DSCFiles.append(dscFile)
                 
     def __iter__(self):
         return iter(self._list)
-
-
-
-class Summary():
-    def __init__(self):
-        self.errors = list()
-        self.warnings = list()
-        self.results = list()
-        self.layers = 0
-
-    def PrintStatus(self, loghandle = None):
-        logging.critical("\n\n\n************************************************************************************************************************************\n" + \
-                            "************************************************************************************************************************************\n" + \
-                            "************************************************************************************************************************************\n\n")
-
-        logfile,loghandle = Setup_logging("BUILDLOG_SUMMARY.txt", loghandle)
-
-        logging.critical("\n_______________________RESULTS_______________________________\n")
-        for layer in self.results:
-            logging.critical("")
-            for result in layer:
-                logging.critical(result)
-
-        logging.critical("\n_______________________ERRORS_______________________________\n")
-        for layer in self.errors:
-            logging.critical("")
-            for error in layer:
-                logging.critical("ERROR: " + error)
-
-        logging.critical("\n_______________________WARNINGS_____________________________\n")
-        for layer in self.warnings:
-            logging.critical("")
-            for warning in layer:
-                logging.critical("WARNING: " + warning)
-
-    def AddError(self, error, layer = 0):
-        if len(self.errors) <= layer:
-            self.AddLayer(layer)
-        self.errors[layer].append(error)
-
-    def AddWarning(self, warning, layer = 0):
-        if len(self.warnings) <= layer:
-            self.AddLayer(layer)
-        self.warnings[layer].append(warning)
-
-    def AddResult(self, result, layer = 0):
-        if len(self.results) <= layer:
-            self.AddLayer(layer)
-        self.results[layer].append(result)
-
-    def AddLayer(self, layer):
-        self.layers = layer
-        while len(self.results) <= layer:
-            self.results.append(list())
-
-        while len(self.errors) <= layer:
-            self.errors.append(list())
-
-        while len(self.warnings) <= layer:
-            self.warnings.append(list())
-
-    def NumLayers(self):
-        return self.layers
-
-##
-# Walks until it finds a .dependencies and generates a list of packages we need to find
-# returns an empty array if it can't find anything
-##
-def GenerateModulesDependencies(module, workspace):
-
-    modules = []
-    
-    currentDir = module
-    if os.path.isfile(currentDir):
-        currentDir = os.path.dirname(currentDir)
-
-    # make sure we add the module that we are currently in
-    #TODO: use git toplevel instead?
-    #WARNING: this uses the assumption that it will be named SM_ something
-    findSMRoot = currentDir
-
-    while not os.path.basename(findSMRoot).startswith("SM_"):
-        findSMRoot = os.path.dirname(findSMRoot)
-        #logging.critical("Scanning for git folder: %s"%os.path.basename(findSMRoot)[0:2])
-        if os.path.dirname(findSMRoot) == findSMRoot:
-           break
-    
-    if not os.path.dirname(findSMRoot) == findSMRoot:
-        modules.append(findSMRoot)
-
-    while not os.path.isfile(os.path.join(currentDir,".depends")):
-        currentDir = os.path.dirname(currentDir)
-        #logging.critical("Scanning Dependency file: %s"%currentDir)
-        if os.path.dirname(currentDir) == currentDir:
-            return modules
-    
-    #we have our currentDir -> read in the dependencies
-    logging.info("Loading Module Dependency file: %s"%currentDir)
-
-    dependencies = ReadDependencyFile(os.path.join(currentDir,".depends"))
-
-    #find the folder of each module that our dependency file specified
-    for module in dependencies:
-        path = FindModule(workspace,module["name"],module["url"])
-        if path is None:
-            logging.info("Unable to find: %s. Cloning " % module)
-            path = CloneModule(workspace,module["name"],module["url"], module["branch"], module["commit"])
-        if path is None:
-            logging.critical("Unable to find: %s. Cloning failed " % module)
-        else:#we found the path
-            modules.append(path)
-    return modules
-
-##
-# reads the .depends files. An example of the file format
-#[Common/SM_MU_TIANO_PLUS]
-#	url = https://github.com/Microsoft/mu_tiano_plus.git
-#    branch = release/20180529
-#    commit = 5d4a51b4a8d20e5ff1f75adeb969697b1cc201cb
-##
-def ReadDependencyFile(file):
-    
-    try:
-        file = open(file,'r')
-        line = file.readline()
-        modules = []        
-        while not line == "":
-            line = line.strip()
-            if line[0] == '[':                
-                modules.insert(0,{"name":line[1:-1]})
-            elif "=" in line:
-                defines = line.split("=")
-                key = defines[0].strip()
-                value = defines[1].strip()
-                modules[0][key] = value #insert into the 
-            else:
-                logging.warn("Malformatted line in dependency file: %s" % line )
-            line = file.readline() #read in a new file
-        
-        return modules
-    except IOError as e:
-        logging.critical("Unable to open file %s" % infFile)
-        return []
-
-##
-# finds the module requested from the workspace- we assume that it is here at some point
-def FindModule(ws,module, url):
-    currentDir = ws
-    if os.path.isfile(currentDir):
-        currentDir = os.path.dirname(currentDir)
-    for Root, Dirs, Files in os.walk(ws):
-        #look for the directory module if we don't find it, we clone it
-        for directory in Dirs: 
-            #todo read the git information in the directory we find and make sure it matches the URL we find
-            if directory == module:
-                return os.path.join(Root,directory)
-            #logging.info(os.path.join(Root,directory))
-
-    return None
-
-def CloneModule(ws,module, url, branch, commit):
-    tempdir = os.path.join(ws,TEMP_MODULE_DIR)
-    if not os.path.isdir(tempdir):
-        os.mkdir(tempdir)
-    dest = os.path.join(tempdir,module)
-    
-    cmd = "git clone --depth 1 --shallow-submodules --recurse-submodules -b %s %s %s " % (branch, url, dest)
-    logging.info("Cloning into %s" % dest)
-    p = subprocess.Popen(cmd, shell=True)
-    p.wait()
-    return dest
 
 
 #
@@ -306,8 +138,7 @@ if __name__ == '__main__':
     #have a config file
     mu_config = json.loads(strip_json_from_file(mu_config_filepath))
     WORKSPACE_PATH = os.path.realpath(os.path.join(os.path.dirname(mu_config_filepath), mu_config["RelativeWorkspaceRoot"]))
-    if not isinstance(mu_config["Scopes"],tuple):
-        mu_config["Scopes"] = tuple(mu_config["Scopes"])
+    mu_config["Scopes"] = tuple(mu_config["Scopes"])
     
     PROJECT_SCOPE += mu_config["Scopes"]
     print("Running ProjectMu Build: ", mu_config["Name"])
@@ -318,12 +149,11 @@ if __name__ == '__main__':
         mu_pk_path = WORKSPACE_PATH
 
     #Setup the logging to the file as well as the console
-    Setup_logging()
+    setup_logging()
     
     # Bring up the common minimum environment.
     CommonBuildEntry.update_process(WORKSPACE_PATH, PROJECT_SCOPE)
     
-   
     # The SDE should have already been initialized.
     # This call *should* only return the handles to the
     # pre-initialized environment objects.
@@ -347,7 +177,7 @@ if __name__ == '__main__':
         #
         # run all loaded MuBuild Plugins/Tests
         #
-        _, loghandle = Setup_logging("BUILDLOG_{0}.txt".format(os.path.basename(buildableFile)))
+        _, loghandle = setup_logging("BUILDLOG_{0}.txt".format(os.path.basename(buildableFile)))
         print("\n------------------------------------- ----------------------")
         print("Running against: {0}".format(buildableFile))
         for Descriptor in pluginManager.GetPluginsOfClass(PluginManager.IMuBuildPlugin):
@@ -369,7 +199,7 @@ if __name__ == '__main__':
 
             CommonBuildEntry.update_process(WORKSPACE_PATH, PROJECT_SCOPE)
             #Generate our module pcokages
-            MODULE_PACKAGES = GenerateModulesDependencies(buildableFile, WORKSPACE_PATH)            
+            MODULE_PACKAGES = PackageResolver.generate_modules_dependencies(buildableFile, WORKSPACE_PATH)            
             MODULE_PACKAGES.append(WORKSPACE_PATH)
             module_pkg_paths = os.pathsep.join(pkg_name for pkg_name in MODULE_PACKAGES)
             
@@ -389,7 +219,7 @@ if __name__ == '__main__':
             #revert to the checkpoint we created previously
             ShellEnvironment.RevertBuildVars()
         #Finished plugin loop
-        Stop_logging(loghandle)
+        stop_logging(loghandle)
     #Finished builldable file loop
 
     print("______________________________________________________________________")
@@ -401,6 +231,6 @@ if __name__ == '__main__':
         logging.critical("Overall Build Status: Success")
     
     #Print summary struct
-    summary_log.PrintStatus()
+    summary_log.print_status()
     #write the XML artifiact
     xml_artifact.write_file(os.path.join(WORKSPACE_PATH, "Build", "BuildLogs", "TestSuites.xml"))
