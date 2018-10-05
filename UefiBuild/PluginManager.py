@@ -262,7 +262,19 @@ class HelperFunctions(object):
         if(name in self.RegisteredFunctions.keys()):
             raise Exception("Function %s already registered from plugin file %s.  Can't register again from %s" % (name, self.RegisteredFunctions[name], filepath))
         setattr(self, name, function)
-        self.RegisteredFunctions[name] = filepath   
+        self.RegisteredFunctions[name] = filepath
+
+    def HasFunction(self, name):
+        if(name in self.RegisteredFunctions.keys()):
+            return True
+        else:
+            return false
+
+
+    def LoadFromPluginManager(self,pluginManager):
+        for Descriptor in pluginManager.GetPluginsOfClass(IUefiHelperPlugin):
+            logging.debug("Helper Plugin Register: %s", Descriptor.Name)
+            Descriptor.Obj.RegisterHelpers(self)
 
 
 

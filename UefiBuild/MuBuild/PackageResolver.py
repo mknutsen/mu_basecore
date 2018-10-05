@@ -6,7 +6,7 @@ import subprocess
 # Walks until it finds a .dependencies and generates a list of packages we need to find
 # returns an empty array if it can't find anything
 ##
-def generate_modules_dependencies(module, workspace):
+def generate_modules_dependencies(module, workspace, dependencies = None):
 
     modules = []
     
@@ -90,16 +90,12 @@ def find_module(ws,module, url):
     currentDir = ws
     if os.path.isfile(currentDir):
         currentDir = os.path.dirname(currentDir)
-    for Root, Dirs, Files in os.walk(ws):
-        #don't walk - just look in workspace
-        #look for the directory module if we don't find it, we clone it
-        for directory in Dirs: 
-            #todo read the git information in the directory we find and make sure it matches the URL we find
-            if directory == module:
-                return os.path.join(Root,directory)
-            #logging.info(os.path.join(Root,directory))
-
-    return None
+    #only look if it explicitly exists in the workspace
+    lookingPath = os.path.join(currentDir,module)
+    if os.path.isdir(lookingPath):
+        return lookingPath
+    else:
+        return None
 
 def clone_module(ws,module, url, branch, commit):
     tempdir = os.path.join(ws,TEMP_MODULE_DIR)
@@ -108,7 +104,7 @@ def clone_module(ws,module, url, branch, commit):
     dest = os.path.join(tempdir,module)
     
     #make sure we get the commit if 
-    # use run command
+    # use run command from utilities
     cmd = "git clone --depth 1 --shallow-submodules --recurse-submodules -b %s %s %s " % (branch, url, dest)
     logging.info("Cloning into %s" % dest)
     p = subprocess.Popen(cmd, shell=True)

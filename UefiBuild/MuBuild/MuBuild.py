@@ -55,9 +55,10 @@ def get_mu_config():
 
 # An iterator that you can iterate over the list of buildable files
 class FindBuildableFiles(object):
-    def __init__(self,PKG_PATH): #dir is the folder or file that we want to walk over
+    def __init__(self,PKG_PATH, helper = None): #dir is the folder or file that we want to walk over
         self._list = list()
         DSCFiles = list()
+
         for Root, Dirs, Files in os.walk(PKG_PATH):
             for File in Files:
                 if File.lower().endswith('.dsc'):
@@ -68,6 +69,7 @@ class FindBuildableFiles(object):
                 if File.lower().endswith('.mu.dsc.json'): #temporarily turned off
                     fileWoExtension = os.path.splitext(os.path.basename(str(File)))[0]
                     dscFile = os.path.join(Root, fileWoExtension+ ".temp.dsc")
+                    helper.generate_dsc_from_json(os.path.join(Root,File),dscFile)
                     #register as helper function
                     #from DSCGenerator import JsonToDSCGenerator 
                     #JsonToDSCGenerator(os.path.join(Root,File)).write(dscFile)
@@ -128,14 +130,15 @@ if __name__ == '__main__':
     #Get our list of plugins
     pluginManager = PluginManager.PluginManager()
     pluginManager.SetListOfEnvironmentDescriptors(build_env.plugins)
+    helper = PluginManager.HelperFunctions()
+    helper.LoadFromPluginManager(pluginManager)
 
-
-    for buildableFile in FindBuildableFiles(mu_pk_path):
+    for buildableFile in FindBuildableFiles(mu_pk_path,helper):
         #
         # run all loaded MuBuild Plugins/Tests
         #
         _, loghandle = MuLogging.setup_logging(WORKSPACE_PATH,"BUILDLOG_{0}.txt".format(os.path.basename(buildableFile)))
-        print("\n------------------------------------- ----------------------")
+        print("\n-----------------------------------------------------------")
         print("Running against: {0}".format(buildableFile))
         for Descriptor in pluginManager.GetPluginsOfClass(PluginManager.IMuBuildPlugin):
 
@@ -156,7 +159,7 @@ if __name__ == '__main__':
 
             CommonBuildEntry.update_process(WORKSPACE_PATH, PROJECT_SCOPE)
             #Generate our module pcokages
-            MODULE_PACKAGES = PackageResolver.generate_modules_dependencies(buildableFile, WORKSPACE_PATH)            
+            MODULE_PACKAGES = PackageResolver.generate_modules_dependencies(buildableFile, WORKSPACE_PATH)
             MODULE_PACKAGES.append(WORKSPACE_PATH)
             module_pkg_paths = os.pathsep.join(pkg_name for pkg_name in MODULE_PACKAGES)
             
