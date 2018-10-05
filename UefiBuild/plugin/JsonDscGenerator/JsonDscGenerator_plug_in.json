@@ -1,0 +1,5 @@
+{
+    "scope": "global",
+    "name": "Json to DSC Helper Functions",
+    "module": "JsonDscGenerator"
+  }

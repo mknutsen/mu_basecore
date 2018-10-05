@@ -159,15 +159,73 @@ class IUefiHelperPlugin(object):
 # to the build environment
 ###
 class IMuBuildPlugin(object):
-	
-	##
-	# Function that allows plugin to register its functions with the
-	# obj.  
-	# @param obj[in, out]: HelperFunctions object that allows functional 
-	# registration.  
+    
+    ##
+    # Function that allows plugin to register its functions with the
+    # obj.  
+    # @param obj[in, out]: HelperFunctions object that allows functional 
+    # registration.  
+    #
+    def RunBuildPlugin(self, workspace="", packagespath="", args=[], ignorelist = None, environment = None, summary = None, xmlartifact = None):
+        pass
+
+    # looks in workspace and the package paths
+    def FindFile(self, *p):
+        packages = self.pp.split(os.pathsep)
+        Path = os.path.join(self.ws, *p)
+        if not os.path.exists(Path):
+            for Pkg in packages:
+                Path = os.path.join(Pkg, *p)                
+                if os.path.exists(Path):
+                    return Path
+            Path = os.path.join(self.ws, *p)
+        return Path
+
 	#
-	def RunMu(self, workspace="", packagespath="", args=[], ignorelist = None, environment = None, summary = None, xmlartifact = None):
-		pass
+    # Walks a directory for all itmes ending in certain extension
+    # Default is to walk all of workspace
+    #
+    def WalkDirectoryForExtension(self, extensionlist, directory=None, ignorelist=None):
+        if not isinstance(extensionlist, list):
+            logging.critical("Expected list but got " + str(type(extensionlist)))
+            return -1
+
+        if directory is None:
+            directory = self.ws
+        elif not os.path.isdir(directory):
+            if os.path.isdir(os.path.join(self.ws, directory)):
+                directory = os.path.join(self.ws, directory)
+            else:
+                logging.critical("Cannot find directory to walk")
+                return -1
+
+        if ignorelist is not None:
+            ignorelist_lower = list()
+            for item in ignorelist:
+                ignorelist_lower.append(item.lower())
+
+
+        extensionlist_lower = list()
+        for item in extensionlist:
+                extensionlist_lower.append(item.lower())
+
+        returnlist = list()
+        for Root, Dirs, Files in os.walk(directory):
+            for File in Files:
+                for Extension in extensionlist_lower:
+                    if File.lower().endswith(Extension):
+                        ignoreIt = False
+                        if(ignorelist is not None):
+                            for c in ignorelist_lower:
+                                if(File.lower().startswith(c)):
+                                    ignoreIt = True
+                                    break
+                        if not ignoreIt:
+                            logging.debug(os.path.join(Root, File))
+                            returnlist.append(os.path.join(Root, File))
+
+        return returnlist
+
 
 
 
@@ -204,7 +262,19 @@ class HelperFunctions(object):
         if(name in self.RegisteredFunctions.keys()):
             raise Exception("Function %s already registered from plugin file %s.  Can't register again from %s" % (name, self.RegisteredFunctions[name], filepath))
         setattr(self, name, function)
-        self.RegisteredFunctions[name] = filepath   
+        self.RegisteredFunctions[name] = filepath
+
+    def HasFunction(self, name):
+        if(name in self.RegisteredFunctions.keys()):
+            return True
+        else:
+            return false
+
+
+    def LoadFromPluginManager(self,pluginManager):
+        for Descriptor in pluginManager.GetPluginsOfClass(IUefiHelperPlugin):
+            logging.debug("Helper Plugin Register: %s", Descriptor.Name)
+            Descriptor.Obj.RegisterHelpers(self)
 
 
 

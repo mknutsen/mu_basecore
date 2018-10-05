@@ -4,6 +4,7 @@ tags/
 .DS_Store
 *.pyc
 *.bak
+*/*.temp.dsc
 BuildConfig.conf
 
 # Ignore SelfDescribingEnvironment artifacts.
