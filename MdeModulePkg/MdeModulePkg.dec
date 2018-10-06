@@ -950,6 +950,13 @@
   # Maximum delay when waiting for completion (ie EndOfPei) - 10 seconds
   gEfiMdeModulePkgTokenSpaceGuid.PcdDelayedDispatchCompletionTimeoutUs|10000000|UINT32|0x30001049
 
+  ## // MS_CHANGE
+  # A watchdog is armed while doing capsule update.  The watchdog is PET on each % update (call to progress function)
+  # If the watchdog goes off then system will reboot.  A value of zero will disable the watchdog timer (default).
+  #
+  gEfiMdeModulePkgTokenSpaceGuid.PcdCapsuleUpdateWatchdogTimeInSeconds|0x0|UINT8|0x3000104A
+
+
   ## Delayed Dispatch Max Entries    //MS_CHANGE
   # Maximum number of delayed dispatch entries
   gEfiMdeModulePkgTokenSpaceGuid.PcdDelayedDispatchMaxEntries|8|UINT32|0x30001056

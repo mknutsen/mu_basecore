@@ -17,6 +17,8 @@ import shutil
 SCRIPT_PATH = os.path.dirname(os.path.abspath(__file__)) 
 SDE_PATH = os.path.dirname(SCRIPT_PATH) #Path to SDE build env
 sys.path.append(SDE_PATH)
+BASECORE_PATH = os.path.dirname(SDE_PATH) # we assume that 
+
 
 import SelfDescribingEnvironment
 import PluginManager
@@ -74,6 +76,7 @@ if __name__ == '__main__':
     PROJECT_SCOPE += mu_config["Scopes"]
     print("Running ProjectMu Build: ", mu_config["Name"])
     print("WorkSpace: ", WORKSPACE_PATH)
+    print("Basecore Path: ",BASECORE_PATH)
     
     # if a package isn't specifed as needing to be built- we are going to 
     if mu_pk_path is None and mu_config["Packages"]:
@@ -143,6 +146,8 @@ if __name__ == '__main__':
             #Generate our module pcokages
             MODULE_PACKAGES = list() 
             MODULE_PACKAGES.append(WORKSPACE_PATH)
+            if not BASECORE_PATH in MODULE_PACKAGES: #make sure we include basecore in our Module packages in case our workspace is somewhere else
+                MODULE_PACKAGES.append(BASECORE_PATH)
             module_pkg_paths = os.pathsep.join(pkg_name for pkg_name in MODULE_PACKAGES)
             try:
                 #self, workspace="", packagespath="", args=[], ignorelist = None, environment = None, summary = None, xmlartifact = None

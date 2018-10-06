@@ -4,82 +4,82 @@ import imp
 import logging
 
 class PluginDescriptor(object):
-	def __init__(self, t):
-		self.descriptor = t
-		self.Obj = None
-		self.Name = t["name"]
-	
-	def __str__(self):
-		return "PLUGIN DESCRIPTOR:{0}".format(self.Name)
+    def __init__(self, t):
+        self.descriptor = t
+        self.Obj = None
+        self.Name = t["name"]
+    
+    def __str__(self):
+        return "PLUGIN DESCRIPTOR:{0}".format(self.Name)
 
 class PluginManager(object):
 
-	def __init__(self):
-		self.Descriptors = []
+    def __init__(self):
+        self.Descriptors = []
 
-	#
-	# Pass tuple of Environment Descriptor dictionaries to be loaded as plugins
-	#
-	def SetListOfEnvironmentDescriptors(self, newlist):
-		failed = []
-		for a in newlist:
-			b = PluginDescriptor(a)
-			if(self._load(b) == 0):
-				self.Descriptors.append(b)
-			else:
-				failed.append(a)
-		return failed
-	
-	#
-	# Return List of all plugins of a given class
-	#
-	def GetPluginsOfClass(self, classobj):
-		temp = []
-		for a in self.Descriptors:
-			if(isinstance(a.Obj, classobj)):
-				temp.append(a)
-		return temp
+    #
+    # Pass tuple of Environment Descriptor dictionaries to be loaded as plugins
+    #
+    def SetListOfEnvironmentDescriptors(self, newlist):
+        failed = []
+        for a in newlist:
+            b = PluginDescriptor(a)
+            if(self._load(b) == 0):
+                self.Descriptors.append(b)
+            else:
+                failed.append(a)
+        return failed
+    
+    #
+    # Return List of all plugins of a given class
+    #
+    def GetPluginsOfClass(self, classobj):
+        temp = []
+        for a in self.Descriptors:
+            if(isinstance(a.Obj, classobj)):
+                temp.append(a)
+        return temp
 
-	#
-	# Return List of all plugins
-	#
-	def GetAllPlugins(self):
-		return self.Descriptors
+    #
+    # Return List of all plugins
+    #
+    def GetAllPlugins(self):
+        return self.Descriptors
 
-	#
-	# Load and Instantiate the plugin
-	#
-	def _load(self, PluginDescriptor):
-		PluginDescriptor.Obj = None
-		PythonFileName = PluginDescriptor.descriptor["module"] + ".py"
-		PyModulePath = os.path.join(os.path.dirname(os.path.abspath(PluginDescriptor.descriptor["descriptor_file"])), PythonFileName)
-		PluginDescriptor.descriptor["module_file"] = PyModulePath
-		logging.debug("Loading Plugin from %s", PyModulePath)
-		try:
-			with open(PyModulePath,"r") as plugin_file:
-				_module = imp.load_module(
-					"UefiBuild_Plugin_" + PluginDescriptor.descriptor["module"],
-					plugin_file,
-					PyModulePath,
-					("py","r",imp.PY_SOURCE))
+    #
+    # Load and Instantiate the plugin
+    #
+    def _load(self, PluginDescriptor):
+        PluginDescriptor.Obj = None
+        PythonFileName = PluginDescriptor.descriptor["module"] + ".py"
+        PyModulePath = os.path.join(os.path.dirname(os.path.abspath(PluginDescriptor.descriptor["descriptor_file"])), PythonFileName)
+        PluginDescriptor.descriptor["module_file"] = PyModulePath
+        logging.debug("Loading Plugin from %s", PyModulePath)
+        try:
+            with open(PyModulePath,"r") as plugin_file:
+                _module = imp.load_module(
+                    "UefiBuild_Plugin_" + PluginDescriptor.descriptor["module"],
+                    plugin_file,
+                    PyModulePath,
+                    ("py","r",imp.PY_SOURCE))
 
-		except Exception:
-			exc_info = sys.exc_info()
-			logging.error("Failed to import plugin: %s", PyModulePath, exc_info=exc_info)
-			return -1
+        except Exception:
+            exc_info = sys.exc_info()
+            logging.error("Failed to import plugin: %s", PyModulePath, exc_info=exc_info)
+            return -1
 
-		# Instantiate the plugin
-		try: 
-			obj = getattr(_module, PluginDescriptor.descriptor["module"])
-			PluginDescriptor.Obj = obj()
-		except AttributeError:
-			exc_info = sys.exc_info()
-			logging.error("Failed to instantiate plugin: %s", PyModulePath, exc_info=exc_info)
-			return -1
+        # Instantiate the plugin
+        try: 
+            obj = getattr(_module, PluginDescriptor.descriptor["module"])
+            PluginDescriptor.Obj = obj()
+        except AttributeError:
+            exc_info = sys.exc_info()
+            logging.error("Failed to instantiate plugin: %s", PyModulePath, exc_info=exc_info)
+            return -1
 
-		return 0 
-				
-	
+        return 0 
+                
+    
 
 ###############################################################################
 ##                           PLUGIN Base Classes                             ##
@@ -90,69 +90,69 @@ class PluginManager(object):
 ###
 class IUefiBuildPlugin(object):
 
-	##
-	# Run Post Build Operations
-	#
-	# @param thebuilder - UefiBuild object to get env information
-	#
-	# @return 0 for success NonZero for error. 
-	##
-	def do_post_build(self, thebuilder):
-		return 0
+    ##
+    # Run Post Build Operations
+    #
+    # @param thebuilder - UefiBuild object to get env information
+    #
+    # @return 0 for success NonZero for error. 
+    ##
+    def do_post_build(self, thebuilder):
+        return 0
 
-	##
-	# Run Pre Build Operations
-	#
-	# @param thebuilder - UefiBuild object to get env information
-	#
-	# @return 0 for success NonZero for error. 
-	##
-	def do_pre_build(self, thebuilder):
-		'''
-		Run Pre build Operation
-		'''
-		return 0
+    ##
+    # Run Pre Build Operations
+    #
+    # @param thebuilder - UefiBuild object to get env information
+    #
+    # @return 0 for success NonZero for error. 
+    ##
+    def do_pre_build(self, thebuilder):
+        '''
+        Run Pre build Operation
+        '''
+        return 0
 ###
 # Plugin that supports Pre and Post Build steps
 ###
 class IDscProcessorPlugin(object):
 
-	##
-	# does the transform on the DSC	
-	#
-	# @param dsc - the in-memory model of the DSC
-	# @param thebuilder - UefiBuild object to get env information
-	#
-	# @return 0 for success NonZero for error. 
-	##
-	def do_transform(self, dsc, thebuilder):
-		return 0
+    ##
+    # does the transform on the DSC	
+    #
+    # @param dsc - the in-memory model of the DSC
+    # @param thebuilder - UefiBuild object to get env information
+    #
+    # @return 0 for success NonZero for error. 
+    ##
+    def do_transform(self, dsc, thebuilder):
+        return 0
 
-	##
-	# gets the level that this transform operates at
-	#
-	# @param thebuilder - UefiBuild object to get env information
-	#
-	# @return 0 for the most generic level
-	##
-	def get_level(self, thebuilder):
-		
-		return 0
+    ##
+    # gets the level that this transform operates at
+    #
+    # @param thebuilder - UefiBuild object to get env information
+    #
+    # @return 0 for the most generic level
+    ##
+    def get_level(self, thebuilder):
+        
+        return 0
 
 ###
 # Plugin that supports adding Extension or helper methods
 # to the build environment
 ###
 class IUefiHelperPlugin(object):
-	
-	##
-	# Function that allows plugin to register its functions with the
-	# obj.  
-	# @param obj[in, out]: HelperFunctions object that allows functional 
-	# registration.  
-	#
-	def RegisterHelpers(self, obj):
-		pass
+    
+    ##
+    # Function that allows plugin to register its functions with the
+    # obj.  
+    # @param obj[in, out]: HelperFunctions object that allows functional 
+    # registration.  
+    #
+    def RegisterHelpers(self, obj):
+        pass
 
 ###
 # Plugin that supports adding Extension or helper methods
@@ -181,7 +181,7 @@ class IMuBuildPlugin(object):
             Path = os.path.join(self.ws, *p)
         return Path
 
-	#
+    #
     # Walks a directory for all itmes ending in certain extension
     # Default is to walk all of workspace
     #
@@ -273,12 +273,14 @@ class HelperFunctions(object):
 
     def LoadFromPluginManager(self,pluginManager):
         for Descriptor in pluginManager.GetPluginsOfClass(IUefiHelperPlugin):
-
+            
             logging.info(Descriptor)
-            if self.HasFunction(Descriptor.Name):
-                continue
             logging.debug("Helper Plugin Register: %s", Descriptor.Name)
-            Descriptor.Obj.RegisterHelpers(self)
+            try:
+                Descriptor.Obj.RegisterHelpers(self)
+            except:
+                logging.warning("Unable to register {0}".format(Descriptor.Name))
+                pass
 
 
 
