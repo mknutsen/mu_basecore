@@ -1,7 +1,6 @@
 import os
 import logging
-import subprocess
-from UtilityFunctions import RunCmd
+import GitPython
 
 
 ##
