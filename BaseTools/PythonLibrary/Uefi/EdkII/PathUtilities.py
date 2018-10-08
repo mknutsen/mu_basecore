@@ -49,6 +49,8 @@ class Edk2Path(object):
     def GetEdk2RelativePathFromAbsolutePath(self, abspath):
         relpath = None
         found = False
+        if abspath is None:
+            return None
         for a in self.PackagePathList:
             stripped = abspath.lower().partition(a.lower())[2]
             if stripped:  

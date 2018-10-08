@@ -27,8 +27,6 @@ class DependencyCheck(IMuBuildPlugin):
         tc = testsuite.create_new_testcase(testcasename, testclassname)
         overall_status = 0
         
-        logging.critical("RUNNING DEPENDENCY CHECK")
-
         #Get current platform
         abs_pkg_path = Edk2pathObj.GetAbsolutePathOnThisSytemFromEdk2RelativePath(packagename)
 

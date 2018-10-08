@@ -79,12 +79,13 @@ if __name__ == '__main__':
 
     # Get Package Path from config file
     pplist = list()
-    for a in mu_config["PackagesPath"]:
-        # special entry that puts the directory of the repo config file in the package path list
-        if(a.lower() == 'self'):
-            pplist.append(os.path.dirname(mu_config_filepath))
-        else:
-            pplist.append(a)
+    if "PackagesPath" in mu_config:
+        for a in mu_config["PackagesPath"]:
+            # special entry that puts the directory of the repo config file in the package path list
+            if(a.lower() == 'self'):
+                pplist.append(os.path.dirname(mu_config_filepath))
+            else:
+                pplist.append(a)
 
 
     #make Edk2Path object to handle all path operations 
@@ -110,14 +111,13 @@ if __name__ == '__main__':
     CommonBuildEntry.update_process(edk2path.WorkspacePath, PROJECT_SCOPES)
     env = ShellEnvironment.GetBuildVars()
     
-    #env.SetValue("PRODUCT_NAME", "CORE", "Platform Hardcoded")
     env.SetValue("TARGET_ARCH", "IA32 X64", "Platform Hardcoded")
     env.SetValue("TARGET", "DEBUG", "Platform Hardcoded")
     
     #Generate consumable XML object- junit format
     JunitReport = MuJunitReport()
 
-
+    #Keep track of failures
     failure_num = 0
     total_num = 0
 
@@ -133,7 +133,10 @@ if __name__ == '__main__':
         #
         ts = JunitReport.create_new_testsuite(pkgToRunOn, "MuBuild.{0}.{1}".format( mu_config["GroupName"], pkgToRunOn) )
         _, loghandle = MuLogging.setup_logging(WORKSPACE_PATH,"BUILDLOG_{0}.txt".format(pkgToRunOn))
-        logging.info("Package Running: {0}".format(pkgToRunOn))
+        print("\n-----------------------------------------------------------")
+        logging.info("\tPackage Running: {0}".format(pkgToRunOn))
+        print("\tPackage Running: {0}".format(pkgToRunOn))
+        print("-----------------------------------------------------------\n")
         ShellEnvironment.CheckpointBuildVars()
         env = ShellEnvironment.GetBuildVars()
 
@@ -145,11 +148,12 @@ if __name__ == '__main__':
             pkg_config = dict()
 
         for Descriptor in pluginManager.GetPluginsOfClass(PluginManager.IMuBuildPlugin):
-            
+            logging.info("--- Running {0}".format(Descriptor.Name))
+            print("--- Running {0}".format(Descriptor.Name))
             total_num +=1
             ShellEnvironment.CheckpointBuildVars()
             env = ShellEnvironment.GetBuildVars()
-            try:
+            #try:
                 #   - package is the edk2 path to package.  This means workspace/packagepath relative.  
                 #   - edk2path object configured with workspace and packages path
                 #   - any additional command line args
@@ -159,13 +163,11 @@ if __name__ == '__main__':
                 #   - Plugin Manager Instance
                 #   - Plugin Helper Obj Instance
                 #   - testsuite Object used for outputing junit results
-                rc = Descriptor.Obj.RunBuildPlugin(pkgToRunOn, edk2path, sys.argv, mu_config, pkg_config, env, pluginManager, helper, ts)
-            except Exception as exp:
-                logging.critical(exp)
-
-                #summary_log.AddError("Exception thrown by {0} in package {1}\n{2}".format(Descriptor.Name,pkgToRunOn,str(exp)),2)
-                rc = 1
-
+            rc = Descriptor.Obj.RunBuildPlugin(pkgToRunOn, edk2path, sys.argv, mu_config, pkg_config, env, pluginManager, helper, ts)
+            #except Exception as exp:                
+            #    logging.error("Exception thrown by {0} in package {1}\n{2}".format(Descriptor.Name,pkgToRunOn,str(exp)))
+            #    rc = 1
+            
             if(rc != 0):
                 failure_num += 1
                 if(rc is None):
@@ -175,6 +177,7 @@ if __name__ == '__main__':
                     logging.error("Test Failed: %s returned %d" % (Descriptor.Name, rc))
                     ret = rc
             else:
+                print("  ->Test Success! %s" % Descriptor.Name)
                 logging.debug("Test Success: %s" % Descriptor.Name)
             #revert to the checkpoint we created previously
             ShellEnvironment.RevertBuildVars()
@@ -187,10 +190,11 @@ if __name__ == '__main__':
 
     JunitReport.Output(os.path.join(WORKSPACE_PATH, "Build", "BuildLogs", "TestSuites.xml"))
 
+    print("\n===================================================================")
       #Print Overall Success
     if(failure_num != 0):
         logging.critical("Overall Build Status: Error")
-        logging.critical("There were {0} failures out of {1} attempts".format(failure_num,total_num))        
+        logging.critical("There were {0} failures out of {1} attempts".format(failure_num,total_num))
     else:
         logging.critical("Overall Build Status: Success")
     

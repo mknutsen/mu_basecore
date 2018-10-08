@@ -21,7 +21,6 @@ class DSCCheck(IMuBuildPlugin):
         tc = testsuite.create_new_testcase(testcasename, testclassname)
        
         overall_status = 0
-        logging.critical("RUNNING DSC CHECK")
 
         abs_pkg_path = Edk2pathObj.GetAbsolutePathOnThisSytemFromEdk2RelativePath(packagename)
         abs_dsc_path = self.get_dsc_name_in_dir(abs_pkg_path)
@@ -30,7 +29,6 @@ class DSCCheck(IMuBuildPlugin):
         if abs_dsc_path is None or wsr_dsc_path is "" or not os.path.isfile(abs_dsc_path):
             tc.SetSkipped()
             tc.LogStdError("No DSC file {0} in package {1}".format(abs_dsc_path, abs_pkg_path))
-            summary.AddResult("1 warning(s) in " + packagename + " Compile. DSC not found.", 2)
             return 0
 
         #Get INF Files

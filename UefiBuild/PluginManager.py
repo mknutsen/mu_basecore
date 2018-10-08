@@ -247,7 +247,7 @@ class IMuBuildPlugin(object):
             if dscFile is None and jsonFile is None:
                 raise Exception()
         except:
-            logging.error("UNABLE TO FIND PACKAGE {0}".format(pkg))
+            logging.warning("Unable to find DSC for package {0}".format(folderpath))
             return None
 
 

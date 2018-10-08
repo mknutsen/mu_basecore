@@ -82,7 +82,7 @@ class MuTestCase(object):
         elif self.Status == MuTestCase.ERROR:
             outstream.write('<error message="{0}" type="{1}" />'.format(self.ErrorMsg.Message, self.ErrorMsg.Type))
         elif self.Status != MuTestCase.SUCCESS:
-            raise Exception("Can't output a testcase in invalid state")
+            raise Exception("Can't output a testcase {0}.{1} in invalid state {2}".format(self.ClassName, self.Name, self.Status))
         
         outstream.write('<system-out>' + self.StdOut + '</system-out>')
         outstream.write('<system-err>' + self.StdErr + '</system-err>')
