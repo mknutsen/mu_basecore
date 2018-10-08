@@ -9,6 +9,8 @@ def clean_build_logs(ws):
      # Make sure that we have a clean environment.
     if os.path.isdir(os.path.join(ws, "Build", "BuildLogs")):
         shutil.rmtree(os.path.join(ws, "Build", "BuildLogs"))
+    if os.path.isdir(os.path.join(ws, "Build")):
+        shutil.rmtree(os.path.join(ws, "Build"))
 
 def setup_logging(workspace, filename=None, loghandle = None):
 

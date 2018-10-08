@@ -28,19 +28,9 @@ class Compiler_plugin(IMuBuildPlugin):
         self._env = environment
         AP = Edk2pathObj.GetAbsolutePathOnThisSytemFromEdk2RelativePath(packagename)
         APDSC = self.get_dsc_name_in_dir(AP)
-<<<<<<< HEAD
         AP_Path= Edk2pathObj.GetEdk2RelativePathFromAbsolutePath(APDSC)
-        
-        testcasename = "MuBuild Compile " + packagename
-        testclassname = "MuBuild.CompileCheck." + packagename
-        tc = testsuite.create_new_testcase(testcasename, testclassname)
-
-        if AP_Path is None or not os.path.isfile(APDSC):
-=======
-        AP= Edk2pathObj.GetEdk2RelativePathFromAbsolutePath(APDSC)
 
         if AP is None or not os.path.isfile(APDSC):
->>>>>>> 381b8eeb5eadb78125d3aa5548d0d5dee671d918
             tc.SetSkipped()
             tc.LogStdError("1 warning(s) in {0} Compile. DSC not found.".format(packagename))
             return 0
