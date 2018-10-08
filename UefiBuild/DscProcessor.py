@@ -17,7 +17,11 @@ class DscProcessor():
         logging.info("-------------------------------------------------")
         logging.info("Pre-Parsing DSC")
         BaseDsc = Dsc()
-        status = BaseDsc.Parse(thebuilder.mws.join(thebuilder.ws, thebuilder.env.GetValue("ACTIVE_PLATFORM")), thebuilder)
+        filename = thebuilder.mws.join(thebuilder.ws, thebuilder.env.GetValue("ACTIVE_PLATFORM"))
+        if filename.endswith(".temp.dsc"):
+            logging.critical("We cannot reprocess a dsc that has already been outputted")
+            return 0
+        status = BaseDsc.Parse(filename, thebuilder)
         #get the BaseDSC and then translate it to the modification proxy.
         #check to see if there are any python plugins in this folder
         if (status != 0):
@@ -34,7 +38,7 @@ class DscProcessor():
                 logging.error("DSC Plugin: {0} failed".format(str(Descriptor.Name)))
                 raise
 
-        filename = thebuilder.mws.join(thebuilder.ws, thebuilder.env.GetValue("ACTIVE_PLATFORM"))
+        
         filename = ".temp.".join(filename.split("."))
         with open (filename, "w") as finaldsc:
             BaseDsc.Write(finaldsc)

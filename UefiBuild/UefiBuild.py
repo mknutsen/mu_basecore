@@ -32,7 +32,7 @@ class UefiBuilder(object):
         self.SkipBuild = False
         self.SkipPreBuild = False
         self.SkipPostBuild = False
-        self.SkipDscProcessor = True
+        self.SkipDscProcessor = False
         self.FlashImage = False
         self.ShowHelpOnly = False
         self.OutputBuildEnvBeforeBuildToFile = None
@@ -440,8 +440,6 @@ class UefiBuilder(object):
     #
     def ParseDscFile(self):
         dsc_file_path = self.mws.join(self.ws, self.env.GetValue("ACTIVE_PLATFORM"))
-        logging.critical(self.mws)
-        logging.critical("DSC file path: {0}".format(dsc_file_path))
         if(os.path.isfile(dsc_file_path)):
              #parse DSC File
             logging.debug("Parse Active Platform DSC file: {0}".format(dsc_file_path))

@@ -239,7 +239,8 @@ class IMuBuildPlugin(object):
             dscFile = None
             jsonFile = None
             for entry in allEntries:
-                if entry.endswith(".dsc"):
+                #make sure we're getting the origional DSC and not a generated dsc
+                if entry.endswith(".dsc") and not entry.endswith(".temp.dsc"):
                     dscFile = entry
                 if entry.endswith(".mu.dsc.json"):
                     jsonFile = entry

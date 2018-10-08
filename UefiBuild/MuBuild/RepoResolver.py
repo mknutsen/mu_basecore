@@ -23,7 +23,6 @@ def generate_modules_dependencies(module, workspace, dependencies = None):
 
     while not os.path.basename(findSMRoot).startswith("SM_"):
         findSMRoot = os.path.dirname(findSMRoot)
-        #logging.critical("Scanning for git folder: %s"%os.path.basename(findSMRoot)[0:2])
         if os.path.dirname(findSMRoot) == findSMRoot:
            break
     
@@ -32,7 +31,6 @@ def generate_modules_dependencies(module, workspace, dependencies = None):
 
     while not os.path.isfile(os.path.join(currentDir,".depends")):
         currentDir = os.path.dirname(currentDir)
-        #logging.critical("Scanning Dependency file: %s"%currentDir)
         if os.path.dirname(currentDir) == currentDir:
             return modules
     

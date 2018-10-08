@@ -75,7 +75,8 @@ if __name__ == '__main__':
     MuLogging.setup_logging(WORKSPACE_PATH)
 
     #Get scopes from config file
-    PROJECT_SCOPES += tuple(mu_config["Scopes"])
+    if "Scopes" in mu_config:
+        PROJECT_SCOPES += tuple(mu_config["Scopes"])
 
     # Get Package Path from config file
     pplist = list()

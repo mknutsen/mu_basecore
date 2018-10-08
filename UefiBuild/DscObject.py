@@ -756,7 +756,7 @@ class DscParser:
                 line = ""
                 eof = True
             
-        
+        return (eof, line)
     ##
     #return the current file and linenumber we are on
     ##

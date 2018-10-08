@@ -24,11 +24,13 @@ class Compiler_plugin(IMuBuildPlugin):
     #   - Plugin Helper Obj Instance
     #   - testcase Object used for outputing junit results
     def RunBuildPlugin(self, packagename, Edk2pathObj, args, repoconfig, pkgconfig, environment, PLM, PLMHelper, tc):
-        logging.critical("COMPILECHECK: Compile check test running")
         self._env = environment
         AP = Edk2pathObj.GetAbsolutePathOnThisSytemFromEdk2RelativePath(packagename)
         APDSC = self.get_dsc_name_in_dir(AP)
         AP_Path= Edk2pathObj.GetEdk2RelativePathFromAbsolutePath(APDSC)
+
+        logging.info("Building {0}".format(AP_Path))
+        print("Building {0}".format(AP_Path))
 
         if AP is None or not os.path.isfile(APDSC):
             tc.SetSkipped()
