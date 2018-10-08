@@ -1,5 +1,7 @@
 {
     "Name": "Project Mu BaseCore Repo CI Build",
+
+    "GroupName": "BaseCore",
     //Workspace path relative to this file
     "RelativeWorkspaceRoot": "",
 

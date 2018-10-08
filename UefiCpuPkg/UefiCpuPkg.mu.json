@@ -17,12 +17,12 @@
     },
     "DependencyConfig": {
         "AcceptableDependencies": [
-            "MdePkg",
-            "MdeModulePkg",
-            "UefiCpuPkg"
+            "MdePkg/MdePkg.dec",
+            "MdeModulePkg/MdeModulePkg.dec",
+            "UefiCpuPkg/UefiCpuPkg.dec"
         ], 
         "IgnoreInf": {
-            
+
         }
     },
     "CompileTest": {

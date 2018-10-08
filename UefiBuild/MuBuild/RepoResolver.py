@@ -1,31 +1,8 @@
 import os
 import logging
 import subprocess
+from UtilityFunctions import RunCmd
 
-# Gets the DSC for a particular project
-def get_dsc_for_pacakge(pkg, workspace, helpers = None):
-    try:
-        directory = os.path.join(workspace,pkg)
-        allEntries = os.listdir(directory)
-        dscFile = None
-        jsonFile = None
-        for entry in allEntries:
-            if entry.endswith(".dsc"):
-                dscFile = entry
-            if entry.endswith(".mu.dsc.json"):
-                jsonFile = entry
-
-        if jsonFile:
-            # create the dsc file on the fly
-            logging.info("We should create a DSC from the JSON file on the fly: {0}".format(jsonFile))
-        if dscFile:
-            return os.path.join(directory,dscFile)
-
-        if dscFile is None and jsonFile is None:
-            raise Exception()
-    except:
-        logging.error("UNABLE TO FIND PACKAGE {0}".format(pkg))
-        return None
 
 ##
 # Walks until it finds a .dependencies and generates a list of packages we need to find

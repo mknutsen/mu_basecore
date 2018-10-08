@@ -21,7 +21,7 @@ sys.path.append(PL_PATH)
 
 import SelfDescribingEnvironment
 import PluginManager
-from XmlArtifact import XmlOutput
+from MuJunitReport import MuJunitReport
 import CommonBuildEntry
 import ShellEnvironment
 import MuLogging
@@ -114,11 +114,9 @@ if __name__ == '__main__':
     env.SetValue("TARGET_ARCH", "IA32 X64", "Platform Hardcoded")
     env.SetValue("TARGET", "DEBUG", "Platform Hardcoded")
     
-
-    #Create summary object
-    summary_log = MuLogging.Summary()
     #Generate consumable XML object- junit format
-    xml_artifact = XmlOutput()
+    JunitReport = MuJunitReport()
+
 
     failure_num = 0
     total_num = 0
@@ -133,6 +131,7 @@ if __name__ == '__main__':
         #
         # run all loaded MuBuild Plugins/Tests
         #
+        ts = JunitReport.create_new_testsuite(pkgToRunOn, "MuBuild.{0}.{1}".format( mu_config["GroupName"], pkgToRunOn) )
         _, loghandle = MuLogging.setup_logging(WORKSPACE_PATH,"BUILDLOG_{0}.txt".format(pkgToRunOn))
         logging.info("Package Running: {0}".format(pkgToRunOn))
         ShellEnvironment.CheckpointBuildVars()
@@ -159,13 +158,12 @@ if __name__ == '__main__':
                 #   - EnvConfig Object 
                 #   - Plugin Manager Instance
                 #   - Plugin Helper Obj Instance
-                #   - Summary Object used for printing results
-                #   - xmlunittestlogger Object used for outputing junit results
-                # RunBuildPlugin(self, packagename, Edk2pathObj, args, repoconfig, pkgconfig, environment, PLM, PLMHelper, summary, xmlunittestlogger):
-                rc = Descriptor.Obj.RunBuildPlugin(pkgToRunOn, edk2path, sys.argv, mu_config, pkg_config, env, pluginManager, helper, summary_log, xml_artifact)
+                #   - testsuite Object used for outputing junit results
+                rc = Descriptor.Obj.RunBuildPlugin(pkgToRunOn, edk2path, sys.argv, mu_config, pkg_config, env, pluginManager, helper, ts)
             except Exception as exp:
                 logging.critical(exp)
-                summary_log.AddError("Exception thrown by {0} in package {1}\n{2}".format(Descriptor.Name,pkgToRunOn,str(exp)),2)
+
+                #summary_log.AddError("Exception thrown by {0} in package {1}\n{2}".format(Descriptor.Name,pkgToRunOn,str(exp)),2)
                 rc = 1
 
             if(rc != 0):
@@ -186,10 +184,8 @@ if __name__ == '__main__':
         ShellEnvironment.RevertBuildVars()
     #Finished buildable file loop
 
-    #Print summary struct
-    summary_log.print_status(WORKSPACE_PATH)
-    #write the XML artifact
-    xml_artifact.write_file(os.path.join(WORKSPACE_PATH, "Build", "BuildLogs", "TestSuites.xml"))
+
+    JunitReport.Output(os.path.join(WORKSPACE_PATH, "Build", "BuildLogs", "TestSuites.xml"))
 
       #Print Overall Success
     if(failure_num != 0):
