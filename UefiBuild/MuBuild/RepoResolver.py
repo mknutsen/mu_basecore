@@ -102,11 +102,6 @@ def clone_module(ws,module, url, branch, commit):
         os.mkdir(tempdir)
     dest = os.path.join(tempdir,module)
     
-    #make sure we get the commit if 
-    # use run command from utilities
-    cmd = "git clone --depth 1 --shallow-submodules --recurse-submodules -b %s %s %s " % (branch, url, dest)
-    logging.info("Cloning into %s" % dest)
-    p = subprocess.Popen(cmd, shell=True)
-    p.wait()
+    GitPython.Repo.clone_from()
     return dest
 
