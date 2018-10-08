@@ -26,7 +26,7 @@ import CommonBuildEntry
 import ShellEnvironment
 import MuLogging
 from Uefi.EdkII.PathUtilities import Edk2Path
-#import PackageResolver
+import RepoResolver
 
 PROJECT_SCOPES = ("project_mu",)
 TEMP_MODULE_DIR = "temp_modules"
@@ -39,7 +39,7 @@ def strip_json_from_file(filepath):
         lines = f.readlines()
         out = ""
         for a in lines:
-            a = a.partition("//")[0]
+            a = a.partition("#")[0]
             a = a.rstrip()
             out += a
         return out
@@ -73,6 +73,20 @@ if __name__ == '__main__':
     #Setup the logging to the file as well as the console
     MuLogging.clean_build_logs(WORKSPACE_PATH)
     MuLogging.setup_logging(WORKSPACE_PATH)
+
+    #Check Dependencies for Repo
+    for a in mu_config["Dependencies"]:
+        logging.info("Checking for dependency {0}".format(a["Path"]))
+        fsp = os.path.join(WORKSPACE_PATH, a["Path"])
+        if os.path.isdir(fsp):
+            logging.info("Dependency Exists - Leave it alone")
+        else:
+            #get it
+            os.makedirs(fsp)
+            RepoResolver.clone_repo(fsp, a)
+        #print out details
+        GitDetails = RepoResolver.get_details(fsp)
+        logging.info("Git Details: Url: {0} Branch {1} Commit {2}".format(GitDetails.Url, GitDetails.Branch, GitDetails.Commit))
 
     #Get scopes from config file
     if "Scopes" in mu_config:

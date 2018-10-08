@@ -111,3 +111,9 @@ def clone_module(ws,module, url, branch, commit):
     p.wait()
     return dest
 
+def get_details(abs_file_system_path):
+    return ("Url": "", "Branch": "", "Commit": "")
+
+def clone_repo(abs_file_system_path, DepObj):
+    pass
+
