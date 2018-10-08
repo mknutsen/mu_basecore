@@ -1,19 +1,22 @@
 {
     "Name": "Project Mu BaseCore Repo CI Build",
+
+    "GroupName": "BaseCore",
     //Workspace path relative to this file
     "RelativeWorkspaceRoot": "",
-    //BASECORE path relative to root
-    "BaseCorePath": "",
+
     "Scopes": ["basecore", "corebuild"],
-    "CompileTest": {
-        "AdditionalDefines": []
-    }, 
 
-    "DependencyTest": {
-
-    },
+    // Other Repos that are dependencies
     "Dependencies": [
     ],
+
+    // Edk2 style PackagesPath for resolving dependencies - Note since this is CoreBuild the workspace is the same as root and there is no need for pp
+    "PackagesPath": [
+        //"self"
+    ],
+
+    // Packages in this repo
     "Packages":[
         "MdeModulePkg",
         "MdePkg",
@@ -21,7 +24,7 @@
         "NetworkPkg",
         "PcAtChipsetPkg",
         "PerformancePkg",
-        "UefiCpuPkg",
-        "SecurityPkg"
+        "SecurityPkg",
+        "UefiCpuPkg"
     ]
 }

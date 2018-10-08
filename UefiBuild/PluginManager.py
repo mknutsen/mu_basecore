@@ -161,43 +161,42 @@ class IUefiHelperPlugin(object):
 class IMuBuildPlugin(object):
     
     ##
-    # Function that allows plugin to register its functions with the
-    # obj.  
-    # @param obj[in, out]: HelperFunctions object that allows functional 
-    # registration.  
-    #
-    def RunBuildPlugin(self, package_to_run_on, workspace="", packagespath="", args=[], ignorelist = None, environment = None, summary = None, xmlartifact = None):
+    # External function of plugin.  This function is used to perform the task of the MuBuild Plugin
+    # 
+    #   - package is the edk2 path to package.  This means workspace/packagepath relative.  
+    #   - absolute path to workspace 
+    #   - packagespath csv
+    #   - any additional command line args
+    #   - RepoConfig Object (dict) for the build
+    #   - PkgConfig Object (dict)
+    #   - EnvConfig Object 
+    #   - Plugin Manager Instance
+    #   - Plugin Helper Obj Instance
+    #   - Summary Object used for printing results
+    #   - xmlunittestlogger Object used for outputing junit results
+    def RunBuildPlugin(self, packagename, Edk2pathObj, args, repoconfig, pkgconfig, environment, PLM, PLMHelper, summary, xmlunittestlogger):
         pass
 
-    # looks in workspace and the package paths
-    def FindFile(self, *p):
-        packages = self.pp.split(os.pathsep)
-        Path = os.path.join(self.ws, *p)
-        if not os.path.exists(Path):
-            for Pkg in packages:
-                Path = os.path.join(Pkg, *p)                
-                if os.path.exists(Path):
-                    return Path
-            Path = os.path.join(self.ws, *p)
-        return Path
-
     #
-    # Walks a directory for all itmes ending in certain extension
+    # Walks a directory for all items ending in certain extension
     # Default is to walk all of workspace
     #
-    def WalkDirectoryForExtension(self, extensionlist, directory=None, ignorelist=None):
+    def WalkDirectoryForExtension(self, extensionlist, directory, ignorelist=None):
         if not isinstance(extensionlist, list):
             logging.critical("Expected list but got " + str(type(extensionlist)))
             return -1
 
         if directory is None:
-            directory = self.ws
-        elif not os.path.isdir(directory):
-            if os.path.isdir(os.path.join(self.ws, directory)):
-                directory = os.path.join(self.ws, directory)
-            else:
-                logging.critical("Cannot find directory to walk")
-                return -1
+            logging.critical("No directory given")
+            return -2
+
+        if not os.path.isabs(directory):
+            logging.critical("Directory not abs path")
+            return -3
+
+        if not os.path.isdir(directory):
+            logging.critical("Invalid find directory to walk")
+            return -4
 
         if ignorelist is not None:
             ignorelist_lower = list()
@@ -225,6 +224,31 @@ class IMuBuildPlugin(object):
                             returnlist.append(os.path.join(Root, File))
 
         return returnlist
+    
+    # Gets the DSC for a particular folder
+    def get_dsc_name_in_dir(self, folderpath):
+        try:
+            directory = folderpath
+            allEntries = os.listdir(directory)
+            dscFile = None
+            jsonFile = None
+            for entry in allEntries:
+                if entry.endswith(".dsc"):
+                    dscFile = entry
+                if entry.endswith(".mu.dsc.json"):
+                    jsonFile = entry
+
+            if jsonFile:
+                # create the dsc file on the fly
+                logging.info("We should create a DSC from the JSON file on the fly: {0}".format(jsonFile))
+            if dscFile:
+                return os.path.join(directory, dscFile)
+
+            if dscFile is None and jsonFile is None:
+                raise Exception()
+        except:
+            logging.error("UNABLE TO FIND PACKAGE {0}".format(pkg))
+            return None
 
 
 

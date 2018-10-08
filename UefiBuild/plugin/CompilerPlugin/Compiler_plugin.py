@@ -2,57 +2,52 @@ import logging
 from PluginManager import IMuBuildPlugin
 import time
 from UefiBuild import UefiBuilder
-import os, sys
+import os
+import sys
 
 class Compiler_plugin(IMuBuildPlugin):
 
     ##
-    # Function that allows plugin to register its functions with the
-    # obj.  
-    # @param obj[in, out]: HelperFunctions object that allows functional 
-    # registration.  
-    #
-    def RunBuildPlugin(self, packageToBuild, workspace="", packagespath="", args=[], ignorelist = None, environment = None, summary = None, xmlartifact = None):
-        self._env = environment
+    # External function of plugin.  This function is used to perform the task of the MuBuild Plugin
+    # 
+    #   - package is the edk2 path to package.  This means workspace/packagepath relative.  
+    #   - edk2path object configured with workspace and packages path
+    #   - any additional command line args
+    #   - RepoConfig Object (dict) for the build
+    #   - PkgConfig Object (dict)
+    #   - EnvConfig Object 
+    #   - Plugin Manager Instance
+    #   - Plugin Helper Obj Instance
+    #   - testsuite Object used for outputing junit results
+    def RunBuildPlugin(self, packagename, Edk2pathObj, args, repoconfig, pkgconfig, environment, PLM, PLMHelper, testsuite):
         logging.critical("COMPILECHECK: Compile check test running")
-        #WorkSpace, PackagesPath, pluginlist, args, BuildConfigFile=None
-        logging.critical("The packages we are going to use {0}".format(packagespath))
-        starttime = time.time()
+        self._env = environment
+        AP = Edk2pathObj.GetAbsolutePathOnThisSytemFromEdk2RelativePath(packagename)
+        APDSC = self.get_dsc_name_in_dir(AP)
+        AP= Edk2pathObj.GetEdk2RelativePathFromAbsolutePath(APDSC)
 
-        AP = self.GetActivePlatform()
-        if AP is None or not os.path.isfile(AP):
-            xmlartifact.add_skipped("Compile", "Compile " + packageToBuild + " " + str(self.GetTarget()),"Compile." + packageToBuild, time.time()-starttime, "Compile Skipped")
-            summary.AddResult("1 warning(s) in " + packageToBuild + " Compile. DSC not found.", 2)
+        testcasename = "MuBuild Compile " + packagename
+        testclassname = "MuBuild.CompileCheck." + packagename
+        tc = testsuite.create_new_testcase(testcasename, testclassname)
+
+        if AP is None or not os.path.isfile(APDSC):
+            tc.SetSkipped()
+            tc.LogStdError("1 warning(s) in {0} Compile. DSC not found.".format(packagename))
             return 0
 
-        AP_Root = os.path.dirname(AP)
-
-        uefiBuilder = UefiBuilder(workspace,packagespath, [], args)
+        self._env.SetValue("ACTIVE_PLATFORM", AP, "Set in Compiler Plugin") 
+        #WorkSpace, PackagesPath, PInManager, PInHelper, args, BuildConfigFile=None):
+        uefiBuilder = UefiBuilder(Edk2pathObj.WorkspacePath, ", ".join(Edk2pathObj.PackagePathList), PLM, PLMHelper, args)
         #do all the steps
         ret = uefiBuilder.Go()
-        if ret != 0: #failure:
-            if summary is not None:
-                summary.AddResult("1 error(s) in " + AP + " Compile. Error Code:"+str(ret), 2)
-                # If XML object esists, add result
-            if xmlartifact is not None:
-                xmlartifact.add_failure("Compile", "Compile " + os.path.basename(AP) + " " + str(self.GetTarget()),"Compile." + os.path.basename(AP), (AP + " Compile failed with error code " + str(ret), "Compile_FAILED_"+str(ret)), time.time()-starttime)
+        if ret != 0: #failure:     
+            tc.SetFailed("Compile failed for {0}".format(packagename), "Compile_FAILED")
+            tc.LogStdError("{0} Compile failed with error code {1}".format(AP, ret))
             return 1
-        else:
-            if summary is not None:
-                summary.AddResult("0 error(s) in " + AP + " Compile", 2)
 
-            if xmlartifact is not None:
-                xmlartifact.add_success("Compile", "Compile " + os.path.basename(AP) + " " + str(self.GetTarget()),"Compile." + os.path.basename(AP), time.time()-starttime, "Compile Success")
-            return 0
-        pass
-    #
-    # Returns the active platform if the envdict is inherited
-    #
-    def GetActivePlatform(self):
-        if self._env is not None:
-            return self._env.GetValue("ACTIVE_PLATFORM") 
         else:
-            return ""
+            tc.SetSuccess()
+            return 0
 
     #
     # Returns the active platform if the envdict is inherited

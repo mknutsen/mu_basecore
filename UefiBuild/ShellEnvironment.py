@@ -152,6 +152,6 @@ def RevertBuildVars():
   rootVarDict.pop()
   logging.debug("Reverting to checkpoint {0} for build vars".format(len(rootVarDict)))
 
-def ClearEnivorment():
+def ClearEnvironment():
   global rootEnvironment
   rootEnvironment = None

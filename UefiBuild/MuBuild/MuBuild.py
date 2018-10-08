@@ -9,28 +9,27 @@ import sys
 import logging
 import json
 import argparse
-import subprocess
-import shutil
 
-
-#get path to self and then find SDE path
+#get path to self and then find SDE path and PythonLibrary path
 SCRIPT_PATH = os.path.dirname(os.path.abspath(__file__)) 
 SDE_PATH = os.path.dirname(SCRIPT_PATH) #Path to SDE build env
+PL_PATH = os.path.join(os.path.dirname(SDE_PATH), "BaseTools", "PythonLibrary")
 sys.path.append(SDE_PATH)
-BASECORE_PATH = os.path.dirname(SDE_PATH) # we assume that 
+sys.path.append(PL_PATH)
 
+#BASECORE_PATH = os.path.dirname(SDE_PATH) # we assume that 
 
 import SelfDescribingEnvironment
 import PluginManager
-from XmlArtifact import XmlOutput
+from MuJunitReport import MuJunitReport
 import CommonBuildEntry
 import ShellEnvironment
 import MuLogging
-import PackageResolver
+from Uefi.EdkII.PathUtilities import Edk2Path
+#import PackageResolver
 
-PROJECT_SCOPE = ("project_mu",)
+PROJECT_SCOPES = ("project_mu",)
 TEMP_MODULE_DIR = "temp_modules"
-
 
 #
 # To support json that has comments it must be preprocessed
@@ -51,7 +50,6 @@ def get_mu_config():
     parser.add_argument (
     '-p', '--pkg','--pkg-dir', dest = 'pkg', required = False, type=str,help = 'The package or folder you want to test/compile relative to the Mu Config'
     )
-    #programArg0 = sys.argv[0]
     args, sys.argv = parser.parse_known_args() 
     return args
 
@@ -68,93 +66,104 @@ if __name__ == '__main__':
     if mu_config_filepath is None or not os.path.isfile(mu_config_filepath):
         raise Exception("Invalid path to mu.json file for build: ", mu_config_filepath)
     
-    #have a config file
+    #have a build config file
     mu_config = json.loads(strip_json_from_file(mu_config_filepath))
     WORKSPACE_PATH = os.path.realpath(os.path.join(os.path.dirname(mu_config_filepath), mu_config["RelativeWorkspaceRoot"]))
-    mu_config["Scopes"] = tuple(mu_config["Scopes"])
-    
-    PROJECT_SCOPE += mu_config["Scopes"]
-    print("Running ProjectMu Build: ", mu_config["Name"])
-    print("WorkSpace: ", WORKSPACE_PATH)
-    print("Basecore Path: ",BASECORE_PATH)
-    
-    # if a package isn't specifed as needing to be built- we are going to 
-    if mu_pk_path is None and mu_config["Packages"]:
-        packageList = mu_config["Packages"]
-    elif mu_pk_path:
-        packageList = [mu_pk_path]
-    else:
-        packageList = []
 
     #Setup the logging to the file as well as the console
     MuLogging.clean_build_logs(WORKSPACE_PATH)
     MuLogging.setup_logging(WORKSPACE_PATH)
+
+    #Get scopes from config file
+    PROJECT_SCOPES += tuple(mu_config["Scopes"])
+
+    # Get Package Path from config file
+    pplist = list()
+    for a in mu_config["PackagesPath"]:
+        # special entry that puts the directory of the repo config file in the package path list
+        if(a.lower() == 'self'):
+            pplist.append(os.path.dirname(mu_config_filepath))
+        else:
+            pplist.append(a)
+
+
+    #make Edk2Path object to handle all path operations 
+    edk2path = Edk2Path(WORKSPACE_PATH, pplist)
+
+    logging.info("Running ProjectMu Build: {0}".format(mu_config["Name"]))
+    logging.info("WorkSpace: {0}".format(edk2path.WorkspacePath))
+    logging.info("Package Path: {0}".format(edk2path.PackagePathList))
+    
+    #which package to build
+    packageList = mu_config["Packages"]
+
+    # if a package is specified lets confirm its valid
+    if mu_pk_path:
+        if mu_pk_path in packageList:
+            packageList = [mu_pk_path]
+        else:
+            logging.critical("Supplied Package {0} not Found".format(mu_pk_path))
+            raise Exception("Supplied Package {0} not Found".format(mu_pk_path))
     
     # Bring up the common minimum environment.
-    CommonBuildEntry.update_process(WORKSPACE_PATH, PROJECT_SCOPE)
+    (build_env, shell_env) = SelfDescribingEnvironment.BootstrapEnvironment(edk2path.WorkspacePath, PROJECT_SCOPES)
+    CommonBuildEntry.update_process(edk2path.WorkspacePath, PROJECT_SCOPES)
     env = ShellEnvironment.GetBuildVars()
     
-    #set up our enviroment
-    env.SetValue("PRODUCT_NAME", "CORE", "Platform Hardcoded")
+    #env.SetValue("PRODUCT_NAME", "CORE", "Platform Hardcoded")
     env.SetValue("TARGET_ARCH", "IA32 X64", "Platform Hardcoded")
     env.SetValue("TARGET", "DEBUG", "Platform Hardcoded")
     
-    # The SDE should have already been initialized.
-    # This call *should* only return the handles to the
-    # pre-initialized environment objects.
-    (build_env, shell_env) = SelfDescribingEnvironment.BootstrapEnvironment(WORKSPACE_PATH, PROJECT_SCOPE)
+    #Generate consumable XML object- junit format
+    JunitReport = MuJunitReport()
 
-    
-    #Create summary object
-    summary_log = MuLogging.Summary()
-    #Generate consumable XML object
-    xml_artifact = XmlOutput()
 
     failure_num = 0
     total_num = 0
 
-    #Get our list of plugins
+    #Load plugins
     pluginManager = PluginManager.PluginManager()
     pluginManager.SetListOfEnvironmentDescriptors(build_env.plugins)
     helper = PluginManager.HelperFunctions()
     helper.LoadFromPluginManager(pluginManager)
 
-    logging.critical(packageList)
     for pkgToRunOn in packageList:
         #
         # run all loaded MuBuild Plugins/Tests
         #
+        ts = JunitReport.create_new_testsuite(pkgToRunOn, "MuBuild.{0}.{1}".format( mu_config["GroupName"], pkgToRunOn) )
         _, loghandle = MuLogging.setup_logging(WORKSPACE_PATH,"BUILDLOG_{0}.txt".format(pkgToRunOn))
-        print("\n-----------------------------------------------------------")
-        logging.info("\tPackage Running: {0}".format(pkgToRunOn))
-        print("\tPackage Running: {0}".format(pkgToRunOn))
-        print("\n-----------------------------------------------------------")
+        logging.info("Package Running: {0}".format(pkgToRunOn))
         ShellEnvironment.CheckpointBuildVars()
         env = ShellEnvironment.GetBuildVars()
 
-        #find or generate the DSC for this particular package
-        dscPath = PackageResolver.get_dsc_for_pacakge(pkgToRunOn,WORKSPACE_PATH)
-        env.SetValue("ACTIVE_PLATFORM",dscPath,"Override for building this DSC")
+        pkg_config_file = edk2path.GetAbsolutePathOnThisSytemFromEdk2RelativePath(os.path.join(pkgToRunOn, pkgToRunOn + ".mu.json"))
+        if(pkg_config_file):
+            pkg_config = json.loads(strip_json_from_file(pkg_config_file))
+        else:
+            logging.info("No Pkg Config file for {0}".format(pkgToRunOn))
+            pkg_config = dict()
 
         for Descriptor in pluginManager.GetPluginsOfClass(PluginManager.IMuBuildPlugin):
             
             total_num +=1
             ShellEnvironment.CheckpointBuildVars()
             env = ShellEnvironment.GetBuildVars()
-
-            CommonBuildEntry.update_process(WORKSPACE_PATH, PROJECT_SCOPE)
-            #Generate our module pcokages
-            MODULE_PACKAGES = list() 
-            MODULE_PACKAGES.append(WORKSPACE_PATH)
-            if not BASECORE_PATH in MODULE_PACKAGES: #make sure we include basecore in our Module packages in case our workspace is somewhere else
-                MODULE_PACKAGES.append(BASECORE_PATH)
-            module_pkg_paths = os.pathsep.join(pkg_name for pkg_name in MODULE_PACKAGES)
             try:
-                #self, workspace="", packagespath="", args=[], ignorelist = None, environment = None, summary = None, xmlartifact = None
-                rc = Descriptor.Obj.RunBuildPlugin(pkgToRunOn,WORKSPACE_PATH, module_pkg_paths,sys.argv,list(),env, summary_log, xml_artifact)
+                #   - package is the edk2 path to package.  This means workspace/packagepath relative.  
+                #   - edk2path object configured with workspace and packages path
+                #   - any additional command line args
+                #   - RepoConfig Object (dict) for the build
+                #   - PkgConfig Object (dict)
+                #   - EnvConfig Object 
+                #   - Plugin Manager Instance
+                #   - Plugin Helper Obj Instance
+                #   - testsuite Object used for outputing junit results
+                rc = Descriptor.Obj.RunBuildPlugin(pkgToRunOn, edk2path, sys.argv, mu_config, pkg_config, env, pluginManager, helper, ts)
             except Exception as exp:
                 logging.critical(exp)
-                summary_log.AddError("Exception thrown by {0} in package {1}\n{2}".format(Descriptor.Name,pkgToRunOn,str(exp)),2)
+
+                #summary_log.AddError("Exception thrown by {0} in package {1}\n{2}".format(Descriptor.Name,pkgToRunOn,str(exp)),2)
                 rc = 1
 
             if(rc != 0):
@@ -173,15 +182,11 @@ if __name__ == '__main__':
         
         MuLogging.stop_logging(loghandle) #stop the logging for this particularbuild file
         ShellEnvironment.RevertBuildVars()
-    #Finished builldable file loop
+    #Finished buildable file loop
 
-    
-    #Print summary struct
-    summary_log.print_status(WORKSPACE_PATH)
-    #write the XML artifiact
-    xml_artifact.write_file(os.path.join(WORKSPACE_PATH, "Build", "BuildLogs", "TestSuites.xml"))
 
-    print("______________________________________________________________________")
+    JunitReport.Output(os.path.join(WORKSPACE_PATH, "Build", "BuildLogs", "TestSuites.xml"))
+
       #Print Overall Success
     if(failure_num != 0):
         logging.critical("Overall Build Status: Error")

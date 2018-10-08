@@ -18,7 +18,7 @@ import PluginManager
 
 class UefiBuilder(object):
 
-    def __init__(self, WorkSpace, PackagesPath, pluginlist, args, BuildConfigFile=None):
+    def __init__(self, WorkSpace, PackagesPath, PInManager, PInHelper, args, BuildConfigFile=None):
         self.env = ShellEnvironment.GetBuildVars()
         self.mws = MultipleWorkspace()
         self.mws.setWs(WorkSpace, PackagesPath)
@@ -34,18 +34,13 @@ class UefiBuilder(object):
         self.OutputBuildEnvBeforeBuildToFile = None
         self.Clean = False
         self.UpdateConf = False
-        self.Helper = PluginManager.HelperFunctions()
-        self.PluginManager = PluginManager.PluginManager()
+        self.Helper = PInHelper
+        self.PluginManager = PInManager
         if(BuildConfigFile != None):
             self.BuildConfig = BuildConfigFile
         else:
             self.BuildConfig = os.path.join(self.ws, "BuildConfig.conf")
         self.RunCmd = RunCmd
-
-        self.PluginManager.SetListOfEnvironmentDescriptors(pluginlist)
-
-        
-        
 
     def Go(self):
         try:
@@ -53,13 +48,6 @@ class UefiBuilder(object):
             if(self.ShowHelpOnly == True):
                 self.ShowHelp()
                 return 0
-
-            #
-            #Load Helpers
-            #
-            for Descriptor in self.PluginManager.GetPluginsOfClass(PluginManager.IUefiHelperPlugin):
-                logging.debug("Helper Plugin Register: %s", Descriptor.Name)
-                Descriptor.Obj.RegisterHelpers(self.Helper)
 
             self.Helper.DebugLogRegisteredFunctions()
             
@@ -75,8 +63,6 @@ class UefiBuilder(object):
                 if(ret != 0):
                     logging.critical("Clean failed")
                     return ret
-
-            
             
             #prebuild
             if(self.SkipPreBuild == True):
@@ -241,12 +227,10 @@ class UefiBuilder(object):
                 logging.debug("Plugin Success: %s" % Descriptor.Name)
         return ret
 
-        
-
     def PostBuild(self):
         logging.critical("Running Post Build")
         #
-        # Run the plaform post-build steps.
+        # Run the platform post-build steps.
         #
         ret = self.PlatformPostBuild()
 
@@ -580,29 +564,4 @@ class UefiBuilder(object):
                 logging.critical("Unknown build parameter!!  Parameter: %s" % a)
                 return -1
         return 0
-
-    #
-    # Function used to wait for file to exits before continuing.
-    # Will loop until either timeout or file exists
-    # @param filepath       file to wait for
-    # @param timeout        max number of minutes to wait
-    #
-    def WaitOnBuildFile(self, filepath, timeout):
-        #
-        StartTime = datetime.now()
-        EndTime = StartTime + timedelta(seconds=(timeout*60))
-        logging.critical("Waiting up to %d minutes for file: %s" % (timeout, filepath))
-        logging.critical("Time Now: " + datetime.strftime(StartTime, "%A, %B %d, %Y %I:%M%p" ))
-        logging.critical("Timeout:  " + datetime.strftime(EndTime, "%A, %B %d, %Y %I:%M%p" ))
-        while(True):
-            if(os.path.isfile(filepath)):
-                logging.debug("File Found!")
-                return 0
-            delta = datetime.now() - StartTime
-            if(delta.seconds > (timeout *60)):
-                logging.critical("Timeout waiting on %s" % filepath)
-                return -100
-            ms = divmod(delta.seconds, 60)
-            logging.debug("File not found yet. Time: {0[0]:02}:{0[1]:02} ".format(divmod(delta.seconds, 60)))
-            time.sleep(20)
 
