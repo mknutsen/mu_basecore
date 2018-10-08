@@ -32,7 +32,7 @@ class Edk2Path(object):
                 if(os.path.isdir(wsr)):
                     self.PackagePathList.append(wsr)
                 else:
-                    #assume workspace relative.  Will catch invalid dir when checking whole list
+                    #assume current working dir relative.  Will catch invalid dir when checking whole list
                     self.PackagePathList.append(os.path.abspath(os.path.join(os.getcwd(), a)))
                     
         error = False

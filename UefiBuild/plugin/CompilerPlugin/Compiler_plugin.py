@@ -7,6 +7,10 @@ import sys
 
 class Compiler_plugin(IMuBuildPlugin):
 
+
+    def GetTestName(self, packagename, environment):
+        return ("MuBuild Compile " + packagename, "MuBuild.CompileCheck." + packagename)
+
     ##
     # External function of plugin.  This function is used to perform the task of the MuBuild Plugin
     # 
@@ -18,17 +22,13 @@ class Compiler_plugin(IMuBuildPlugin):
     #   - EnvConfig Object 
     #   - Plugin Manager Instance
     #   - Plugin Helper Obj Instance
-    #   - testsuite Object used for outputing junit results
-    def RunBuildPlugin(self, packagename, Edk2pathObj, args, repoconfig, pkgconfig, environment, PLM, PLMHelper, testsuite):
+    #   - testcase Object used for outputing junit results
+    def RunBuildPlugin(self, packagename, Edk2pathObj, args, repoconfig, pkgconfig, environment, PLM, PLMHelper, tc):
         logging.critical("COMPILECHECK: Compile check test running")
         self._env = environment
         AP = Edk2pathObj.GetAbsolutePathOnThisSytemFromEdk2RelativePath(packagename)
         APDSC = self.get_dsc_name_in_dir(AP)
         AP= Edk2pathObj.GetEdk2RelativePathFromAbsolutePath(APDSC)
-
-        testcasename = "MuBuild Compile " + packagename
-        testclassname = "MuBuild.CompileCheck." + packagename
-        tc = testsuite.create_new_testcase(testcasename, testclassname)
 
         if AP is None or not os.path.isfile(APDSC):
             tc.SetSkipped()
@@ -37,7 +37,7 @@ class Compiler_plugin(IMuBuildPlugin):
 
         self._env.SetValue("ACTIVE_PLATFORM", AP, "Set in Compiler Plugin") 
         #WorkSpace, PackagesPath, PInManager, PInHelper, args, BuildConfigFile=None):
-        uefiBuilder = UefiBuilder(Edk2pathObj.WorkspacePath, ", ".join(Edk2pathObj.PackagePathList), PLM, PLMHelper, args)
+        uefiBuilder = UefiBuilder(Edk2pathObj.WorkspacePath, os.pathsep.join(Edk2pathObj.PackagePathList), PLM, PLMHelper, args)
         #do all the steps
         ret = uefiBuilder.Go()
         if ret != 0: #failure:     
