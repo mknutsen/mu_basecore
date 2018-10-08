@@ -10,6 +10,9 @@ from Uefi.EdkII.Parsers.InfParser import *
 
 class DependencyCheck(IMuBuildPlugin):
 
+    def GetTestName(self, packagename, environment):
+        return ("MuBuild PackageDependency " + packagename, "MuBuild.PackageDependency." + packagename)
+
     #   - package is the edk2 path to package.  This means workspace/packagepath relative.  
     #   - edk2path object configured with workspace and packages path
     #   - any additional command line args
@@ -18,13 +21,8 @@ class DependencyCheck(IMuBuildPlugin):
     #   - EnvConfig Object 
     #   - Plugin Manager Instance
     #   - Plugin Helper Obj Instance
-    #   - xmlunittestlogger Object used for outputing junit results
-    # RunBuildPlugin(self, packagename, Edk2pathObj, args, repoconfig, pkgconfig, environment, PLM, PLMHelper, xmlunittestlogger):
-    def RunBuildPlugin(self, packagename, Edk2pathObj, args, repoconfig, pkgconfig, environment, PLM, PLMHelper, testsuite):
-        
-        testcasename = "MuBuild PackageDependency " + packagename
-        testclassname = "MuBuild.PackageDependency." + packagename
-        tc = testsuite.create_new_testcase(testcasename, testclassname)
+    #   - testcase Object used for outputing junit results
+    def RunBuildPlugin(self, packagename, Edk2pathObj, args, repoconfig, pkgconfig, environment, PLM, PLMHelper, tc):
         overall_status = 0
         
         logging.critical("RUNNING DEPENDENCY CHECK")

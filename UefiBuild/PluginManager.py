@@ -172,9 +172,15 @@ class IMuBuildPlugin(object):
     #   - EnvConfig Object 
     #   - Plugin Manager Instance
     #   - Plugin Helper Obj Instance
-    #   - Summary Object used for printing results
-    #   - xmlunittestlogger Object used for outputing junit results
-    def RunBuildPlugin(self, packagename, Edk2pathObj, args, repoconfig, pkgconfig, environment, PLM, PLMHelper, summary, xmlunittestlogger):
+    #   - Junit Logger
+    def RunBuildPlugin(self, packagename, Edk2pathObj, args, repoconfig, pkgconfig, environment, PLM, PLMHelper, JUnitLogger):
+        pass
+
+    ##
+    # Return tuple (string, string) that is the (test case name, test case base class name)
+    #
+    #
+    def GetTestName(self, packagename, environment):
         pass
 
     #
