@@ -98,10 +98,29 @@ if __name__ == '__main__':
     #which package to build
     packageList = mu_config["Packages"]
 
+    #
+    # If mu pk path supplied lets see if its a file system path
+    # If so convert to edk2 relative path
+    #
+    #
+    if mu_pk_path:
+        #if abs path lets convert
+        if os.path.isabs(mu_pk_path):
+            temp = edk2path.GetEdk2RelativePathFromAbsolutePath(mu_pk_path)
+            if(temp is not None):
+                mu_pk_path = temp
+        else: 
+            #Check if relative path
+            temp = os.path.join(os.getcwd(), mu_pk_path)
+            temp = edk2path.GetEdk2RelativePathFromAbsolutePath(temp)
+            if(temp is not None):
+                mu_pk_path = temp
+
     # if a package is specified lets confirm its valid
     if mu_pk_path:
         if mu_pk_path in packageList:
             packageList = [mu_pk_path]
+
         else:
             logging.critical("Supplied Package {0} not Found".format(mu_pk_path))
             raise Exception("Supplied Package {0} not Found".format(mu_pk_path))
@@ -117,7 +136,10 @@ if __name__ == '__main__':
     #Generate consumable XML object- junit format
     JunitReport = MuJunitReport()
 
+<<<<<<< HEAD
     #Keep track of failures
+=======
+>>>>>>> 381b8eeb5eadb78125d3aa5548d0d5dee671d918
     failure_num = 0
     total_num = 0
 
@@ -148,12 +170,21 @@ if __name__ == '__main__':
             pkg_config = dict()
 
         for Descriptor in pluginManager.GetPluginsOfClass(PluginManager.IMuBuildPlugin):
+<<<<<<< HEAD
             logging.info("--- Running {0}".format(Descriptor.Name))
             print("--- Running {0}".format(Descriptor.Name))
             total_num +=1
             ShellEnvironment.CheckpointBuildVars()
             env = ShellEnvironment.GetBuildVars()
             #try:
+=======
+            total_num +=1
+            ShellEnvironment.CheckpointBuildVars()
+            env = ShellEnvironment.GetBuildVars()
+            (testcasename, testclassname) = Descriptor.Obj.GetTestName(pkgToRunOn, env)
+            tc = ts.create_new_testcase(testcasename, testclassname)
+            try:
+>>>>>>> 381b8eeb5eadb78125d3aa5548d0d5dee671d918
                 #   - package is the edk2 path to package.  This means workspace/packagepath relative.  
                 #   - edk2path object configured with workspace and packages path
                 #   - any additional command line args
@@ -162,12 +193,22 @@ if __name__ == '__main__':
                 #   - EnvConfig Object 
                 #   - Plugin Manager Instance
                 #   - Plugin Helper Obj Instance
+<<<<<<< HEAD
                 #   - testsuite Object used for outputing junit results
             rc = Descriptor.Obj.RunBuildPlugin(pkgToRunOn, edk2path, sys.argv, mu_config, pkg_config, env, pluginManager, helper, ts)
             #except Exception as exp:                
             #    logging.error("Exception thrown by {0} in package {1}\n{2}".format(Descriptor.Name,pkgToRunOn,str(exp)))
             #    rc = 1
             
+=======
+                #   - testcase Object used for outputing junit results
+                rc = Descriptor.Obj.RunBuildPlugin(pkgToRunOn, edk2path, sys.argv, mu_config, pkg_config, env, pluginManager, helper, tc)
+            except Exception as exp:
+                logging.critical(exp)
+                tc.SetError("Exception: {0}".format(exp), "UNEXPECTED EXCEPTION")
+                rc = 1
+
+>>>>>>> 381b8eeb5eadb78125d3aa5548d0d5dee671d918
             if(rc != 0):
                 failure_num += 1
                 if(rc is None):

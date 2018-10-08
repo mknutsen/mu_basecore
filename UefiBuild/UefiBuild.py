@@ -18,12 +18,16 @@ import PluginManager
 
 class UefiBuilder(object):
 
+    ##
+    #
+    # 
+    # - PackagesPath - os.pathsep string containing packages path
     def __init__(self, WorkSpace, PackagesPath, PInManager, PInHelper, args, BuildConfigFile=None):
         self.env = ShellEnvironment.GetBuildVars()
         self.mws = MultipleWorkspace()
         self.mws.setWs(WorkSpace, PackagesPath)
         self.ws = WorkSpace
-        self.pp = PackagesPath
+        self.pp = PackagesPath  #string using os.pathsep
         self.Args = args
         self.SkipBuild = False
         self.SkipPreBuild = False
@@ -436,10 +440,12 @@ class UefiBuilder(object):
     #
     def ParseDscFile(self):
         dsc_file_path = self.mws.join(self.ws, self.env.GetValue("ACTIVE_PLATFORM"))
+        logging.critical(self.mws)
+        logging.critical("DSC file path: {0}".format(dsc_file_path))
         if(os.path.isfile(dsc_file_path)):
              #parse DSC File
             logging.debug("Parse Active Platform DSC file: {0}".format(dsc_file_path))
-            dscp = DscParser().SetBaseAbsPath(self.ws).SetPackagePaths(self.pp.split(";")).SetInputVars(self.env.GetAllBuildKeyValues())
+            dscp = DscParser().SetBaseAbsPath(self.ws).SetPackagePaths(self.pp.split(os.pathsep)).SetInputVars(self.env.GetAllBuildKeyValues())
             dscp.ParseFile(dsc_file_path)
             for key,value in dscp.LocalVars.items():
                 #set env as overrideable
@@ -464,7 +470,7 @@ class UefiBuilder(object):
         if(os.path.isfile(self.mws.join(self.ws, self.env.GetValue("FLASH_DEFINITION")))):
             #parse the FDF file- fdf files have similar syntax to DSC and therefore parser works for both.
             logging.debug("Parse Active Flash Definition (FDF) file")
-            fdfp = DscParser().SetBaseAbsPath(self.ws).SetPackagePaths(self.pp.split(";")).SetInputVars(self.env.GetAllBuildKeyValues())
+            fdfp = DscParser().SetBaseAbsPath(self.ws).SetPackagePaths(self.pp.split(os.pathsep)).SetInputVars(self.env.GetAllBuildKeyValues())
             pa = self.mws.join(self.ws, self.env.GetValue("FLASH_DEFINITION"))
             fdfp.ParseFile(pa)
             for key, value in fdfp.LocalVars.items():

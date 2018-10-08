@@ -5,6 +5,9 @@ from Uefi.EdkII.Parsers.DscParser import *
 
 class DSCCheck(IMuBuildPlugin):
 
+    def GetTestName(self, packagename, environment):
+        return ("MuBuild DscCheck " + packagename, "MuBuild.DscCheck." + packagename)
+
     #   - package is the edk2 path to package.  This means workspace/packagepath relative.  
     #   - edk2path object configured with workspace and packages path
     #   - any additional command line args
@@ -13,13 +16,9 @@ class DSCCheck(IMuBuildPlugin):
     #   - EnvConfig Object 
     #   - Plugin Manager Instance
     #   - Plugin Helper Obj Instance
-    #   - testsuite Object used for outputing junit results
+    #   - testcalass Object used for outputing junit results
     #
-    def RunBuildPlugin(self, packagename, Edk2pathObj, args, repoconfig, pkgconfig, environment, PLM, PLMHelper, testsuite):
-        testcasename = "MuBuild DscCheck " + packagename
-        testclassname = "MuBuild.DscCheck." + packagename
-        tc = testsuite.create_new_testcase(testcasename, testclassname)
-       
+    def RunBuildPlugin(self, packagename, Edk2pathObj, args, repoconfig, pkgconfig, environment, PLM, PLMHelper, tc):      
         overall_status = 0
 
         abs_pkg_path = Edk2pathObj.GetAbsolutePathOnThisSytemFromEdk2RelativePath(packagename)
