@@ -1,5 +1,5 @@
 #
-#  Copyright (c) 2006 - 2018, Intel Corporation. All rights reserved.<BR>
+#  Copyright (c) 2006 - 2011, Intel Corporation. All rights reserved.<BR>
 #
 #  This program and the accompanying materials
 #  are licensed and made available under the terms and conditions of the BSD License
@@ -14,6 +14,14 @@
 
 #  Separate multiple LIST entries with a SINGLE SPACE character, do not use comma characters.
 #  Un-set an option by either commenting out the line, or not setting a value.
+
+#
+# Increase this version tag any time you want user to get warning about updating this file in the Conf dir.  
+# By default it does not update existing conf dirs. 
+#
+# Updating the default tool chain tag to use VS2015
+#
+#!VERSION=1.01
 
 #
 #  PROPERTY              Type       Use         Description
@@ -57,20 +65,15 @@ TOOL_CHAIN_CONF       = Conf/tools_def.txt
 #  TAGNAME               List      Optional   Specify the name(s) of the tools_def.txt TagName to use.
 #                                             If not specified, all applicable TagName tools will be
 #                                             used for the build.  The list uses space character separation.
-TOOL_CHAIN_TAG        = MYTOOLS
+TOOL_CHAIN_TAG        = VS2015x86   
 
-# MAX_CONCURRENT_THREAD_NUMBER  NUMBER  Optional  The number of concurrent threads. If not specified or set
-#                                                 to zero, tool automatically detect number of processor
-#                                                 threads. Recommend to set this value to one less than the
-#                                                 number of your computer cores or CPUs. When value set to 1,
-#                                                 means disable multi-thread build, value set to more than 1,
-#                                                 means user specify the thread number to build. Not specify
-#                                                 the default value in this file.
-# MAX_CONCURRENT_THREAD_NUMBER = 1
+# MAX_CONCURRENT_THREAD_NUMBER  NUMBER  Optional  The number of concurrent threads. Recommend to set this
+#                                                 value to one more than the number of your compurter
+#                                                 cores or CPUs. Less than 2 means disable multithread build.
+MAX_CONCURRENT_THREAD_NUMBER = 10
 
 
 # BUILD_RULE_CONF  Filename Optional  Specify the file name to use for the build rules that are followed
 #                                     when generating Makefiles. If not specified, the file: 
 #                                     WORKSPACE/Conf/build_rule.txt will be used
 BUILD_RULE_CONF = Conf/build_rule.txt
-
