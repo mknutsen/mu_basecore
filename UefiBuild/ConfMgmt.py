@@ -120,7 +120,7 @@ class ConfMgmt():
                 if(self.__OlderVersion(outfiles[x], TemplateFilePath)):
                     #Conf dir is older.  Warn user.
                     self.Logger.critical("Conf file [%s] out-of-date.  Please update your conf files!  Sleeping 30 seconds to encourage update....", outfiles[x])
-                    # time.sleep(30)
+                    time.sleep(30)
                 else:
                     self.Logger.debug("Conf file [%s] up-to-date", outfiles[x])
                     
