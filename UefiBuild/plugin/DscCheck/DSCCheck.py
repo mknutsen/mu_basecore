@@ -54,7 +54,7 @@ class DSCCheck(IMuBuildPlugin):
         dp = DscParser()
         dp.SetBaseAbsPath(Edk2pathObj.WorkspacePath)
         dp.SetPackagePaths(Edk2pathObj.PackagePathList)
-        dp.ParseFile(wsr_dsc_path)
+        dp.ParseFile(abs_dsc_path)
 
         #lowercase for matching
         dp.Libs = [x.lower() for x in dp.Libs]
