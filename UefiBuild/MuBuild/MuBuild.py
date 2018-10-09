@@ -97,8 +97,6 @@ if __name__ == '__main__':
             else:
                 pplist.append(a)
 
-    print("Packages we are using: ",pplist)
-
 
     #make Edk2Path object to handle all path operations 
     edk2path = Edk2Path(WORKSPACE_PATH, pplist)
@@ -141,9 +139,11 @@ if __name__ == '__main__':
     (build_env, shell_env) = SelfDescribingEnvironment.BootstrapEnvironment(edk2path.WorkspacePath, PROJECT_SCOPES)
     CommonBuildEntry.update_process(edk2path.WorkspacePath, PROJECT_SCOPES)
     env = ShellEnvironment.GetBuildVars()
+
     
-    env.SetValue("TARGET_ARCH", "IA32 X64", "Platform Hardcoded")
-    env.SetValue("TARGET", "DEBUG", "Platform Hardcoded")
+    archSupported = " ".join(mu_config["ArchSupported"])
+    env.SetValue("TARGET_ARCH", archSupported, "Platform Hardcoded")
+    
     
     #Generate consumable XML object- junit format
     JunitReport = MuJunitReport()
@@ -179,42 +179,52 @@ if __name__ == '__main__':
             pkg_config = dict()
 
         for Descriptor in pluginManager.GetPluginsOfClass(PluginManager.IMuBuildPlugin):
-            logging.info("--- Running {0}".format(Descriptor.Name))
-            print("--- Running {0}".format(Descriptor.Name))
-            total_num +=1
-            ShellEnvironment.CheckpointBuildVars()
-            env = ShellEnvironment.GetBuildVars()
-            (testcasename, testclassname) = Descriptor.Obj.GetTestName(pkgToRunOn, env)
-            tc = ts.create_new_testcase(testcasename, testclassname)
-            try:
-                #   - package is the edk2 path to package.  This means workspace/packagepath relative.  
-                #   - edk2path object configured with workspace and packages path
-                #   - any additional command line args
-                #   - RepoConfig Object (dict) for the build
-                #   - PkgConfig Object (dict)
-                #   - EnvConfig Object 
-                #   - Plugin Manager Instance
-                #   - Plugin Helper Obj Instance
-                #   - testcase Object used for outputing junit results
-                rc = Descriptor.Obj.RunBuildPlugin(pkgToRunOn, edk2path, sys.argv, mu_config, pkg_config, env, pluginManager, helper, tc)
-            except Exception as exp:
-                logging.critical(exp)
-                tc.SetError("Exception: {0}".format(exp), "UNEXPECTED EXCEPTION")
-                rc = 1
+            #Get our targets
+            targets = ["DEBUG"]
+            if Descriptor.Obj.IsTargetDependent() and "Targets" in mu_config:
+                targets = mu_config["Targets"]
 
-            if(rc != 0):
-                failure_num += 1
-                if(rc is None):
-                    logging.error("Test Failed: %s returned NoneType" % Descriptor.Name)
-                    ret = -1
+
+            for target in targets:
+                logging.info("--- Running {0} {1}".format(Descriptor.Name,target))
+                print("--- Running {0} {1}".format(Descriptor.Name,target))
+
+                total_num +=1
+                ShellEnvironment.CheckpointBuildVars()
+                env = ShellEnvironment.GetBuildVars()
+            
+                env.SetValue("TARGET", target, "Platform Hardcoded",)
+                (testcasename, testclassname) = Descriptor.Obj.GetTestName(pkgToRunOn, env)
+                tc = ts.create_new_testcase(testcasename, testclassname)
+                try:
+                    #   - package is the edk2 path to package.  This means workspace/packagepath relative.  
+                    #   - edk2path object configured with workspace and packages path
+                    #   - any additional command line args
+                    #   - RepoConfig Object (dict) for the build
+                    #   - PkgConfig Object (dict)
+                    #   - EnvConfig Object 
+                    #   - Plugin Manager Instance
+                    #   - Plugin Helper Obj Instance
+                    #   - testcase Object used for outputing junit results
+                    rc = Descriptor.Obj.RunBuildPlugin(pkgToRunOn, edk2path, sys.argv, mu_config, pkg_config, env, pluginManager, helper, tc)
+                except Exception as exp:
+                    logging.critical(exp)
+                    tc.SetError("Exception: {0}".format(exp), "UNEXPECTED EXCEPTION")
+                    rc = 1
+
+                if(rc != 0):
+                    failure_num += 1
+                    if(rc is None):
+                        logging.error("Test Failed: %s returned NoneType" % Descriptor.Name)
+                        ret = -1
+                    else:
+                        logging.error("Test Failed: %s returned %d" % (Descriptor.Name, rc))
+                        ret = rc
                 else:
-                    logging.error("Test Failed: %s returned %d" % (Descriptor.Name, rc))
-                    ret = rc
-            else:
-                print("  ->Test Success! %s" % Descriptor.Name)
-                logging.debug("Test Success: %s" % Descriptor.Name)
-            #revert to the checkpoint we created previously
-            ShellEnvironment.RevertBuildVars()
+                    print("  ->Test Success! %s" % Descriptor.Name)
+                    logging.debug("Test Success: %s" % Descriptor.Name)
+                #revert to the checkpoint we created previously
+                ShellEnvironment.RevertBuildVars()
         #Finished plugin loop
         
         MuLogging.stop_logging(loghandle) #stop the logging for this particularbuild file

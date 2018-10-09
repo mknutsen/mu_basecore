@@ -9,8 +9,11 @@ class Compiler_plugin(IMuBuildPlugin):
 
 
     def GetTestName(self, packagename, environment):
-        return ("MuBuild Compile " + packagename, "MuBuild.CompileCheck." + packagename)
-
+        target = environment.GetValue("TARGET")
+        return ("MuBuild Compile " + target + " " + packagename, "MuBuild.CompileCheck." + target + "." + packagename)
+    
+    def IsTargetDependent(self):
+        return True
     ##
     # External function of plugin.  This function is used to perform the task of the MuBuild Plugin
     # 

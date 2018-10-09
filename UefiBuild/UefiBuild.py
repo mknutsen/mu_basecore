@@ -32,7 +32,7 @@ class UefiBuilder(object):
         self.SkipBuild = False
         self.SkipPreBuild = False
         self.SkipPostBuild = False
-        self.SkipDscProcessor = False
+        self.SkipDscProcessor = True
         self.FlashImage = False
         self.ShowHelpOnly = False
         self.OutputBuildEnvBeforeBuildToFile = None

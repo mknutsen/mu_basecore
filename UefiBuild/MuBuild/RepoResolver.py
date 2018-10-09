@@ -46,11 +46,17 @@ def clone_repo(abs_file_system_path, DepObj):
     dest = abs_file_system_path
     if not os.path.isdir(dest):
         os.mkdir(dest)
-    repo = GitPython.Repo.clone_from(DepObj["Url"],dest)
-    if "Branch" in DepObj:
-        repo.checkout(DepObj["Branch"])
+    shallow = True
     if "Commit" in DepObj:
-        if not DepObj["Commit"] == "*" and not DepObj["Commit"].lower() == "latest":
-            repo.reset(DepObj["Commit"])
+        shallow = False
+    repo = GitPython.Repo.clone_from(DepObj["Url"],dest, shallow = shallow)
+    if "Commit" in DepObj:
+        if DepObj["Commit"] == "*" or DepObj["Commit"] =="latest":
+            logging.warning("Invalid commit id- please remove the commit id")
+        elif not repo.checkout(DepObj["Commit"]):
+            repo.checkout(DepObj["Branch"])
+    elif "Branch" in DepObj:
+        repo.checkout(DepObj["Branch"])
+   
     return dest
 

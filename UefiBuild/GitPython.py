@@ -71,26 +71,16 @@ class Repo(object):
 
         return True
 
-    def reset(self,commit):
-        return_buffer = StringIO()
-        cmd = "git reset --hard %s" % commit
-        ret = RunCmd(cmd, workingdir=self._path,outstream=return_buffer)
-
-        p1 = return_buffer.getvalue().strip()
-        if ret != 0:
-            print(p1)
-            return False
-
-        return True
-        
-
     @classmethod
-    def clone_from(self,url, to_path, progress=None, env=None, **kwargs):
+    def clone_from(self,url, to_path, progress=None, env=None,shallow =False, **kwargs):
         print("Cloning {0} into {1}".format(url,to_path))
         #make sure we get the commit if 
         # use run command from utilities
-        
-        cmd = "git clone --depth 1 --shallow-submodules --recurse-submodules %s %s " % (url, to_path)
+        cmd = ""
+        if shallow:
+            cmd = "git clone --depth 1 --shallow-submodules --recurse-submodules %s %s " % (url, to_path)
+        else:
+            cmd = "git clone --recurse-submodules %s %s " % (url, to_path)
         ret = RunCmd(cmd)
 
         return Repo(to_path)

@@ -183,6 +183,12 @@ class IMuBuildPlugin(object):
     def GetTestName(self, packagename, environment):
         pass
 
+    ##
+    # Returns true or false if plugin would like to be called for each target
+    ##
+    def IsTargetDependent(self):
+        return False
+
     #
     # Walks a directory for all items ending in certain extension
     # Default is to walk all of workspace
