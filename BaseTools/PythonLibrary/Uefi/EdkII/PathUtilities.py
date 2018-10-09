@@ -43,7 +43,7 @@ class Edk2Path(object):
 
         #report error
         if(error):
-            raise Exception("Invalid package path directory(s)")
+            raise Exception("Invalid package path directory(s):")
 
 
     def GetEdk2RelativePathFromAbsolutePath(self, abspath):

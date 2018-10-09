@@ -13,6 +13,7 @@ import argparse
 #get path to self and then find SDE path and PythonLibrary path
 SCRIPT_PATH = os.path.dirname(os.path.abspath(__file__)) 
 SDE_PATH = os.path.dirname(SCRIPT_PATH) #Path to SDE build env
+BC_PATH = os.path.dirname(SDE_PATH)
 PL_PATH = os.path.join(os.path.dirname(SDE_PATH), "BaseTools", "PythonLibrary")
 sys.path.append(SDE_PATH)
 sys.path.append(PL_PATH)
@@ -74,26 +75,20 @@ if __name__ == '__main__':
     MuLogging.clean_build_logs(WORKSPACE_PATH)
     MuLogging.setup_logging(WORKSPACE_PATH)
 
+    # Get the packages list
+    pplist = list()
+    pplist.append(BC_PATH)
     #Check Dependencies for Repo
-    for a in mu_config["Dependencies"]:
-        logging.info("Checking for dependency {0}".format(a["Path"]))
-        fsp = os.path.join(WORKSPACE_PATH, a["Path"])
-        if os.path.isdir(fsp):
-            logging.info("Dependency Exists - Leave it alone")
-        else:
-            #get it
-            os.makedirs(fsp)
-            RepoResolver.clone_repo(fsp, a)
-        #print out details
-        GitDetails = RepoResolver.get_details(fsp)
-        logging.info("Git Details: Url: {0} Branch {1} Commit {2}".format(GitDetails.Url, GitDetails.Branch, GitDetails.Commit))
+    if "Dependencies" in mu_config:
+        pplist.extend(RepoResolver.resolve(WORKSPACE_PATH,mu_config["Dependencies"]))
 
     #Get scopes from config file
     if "Scopes" in mu_config:
         PROJECT_SCOPES += tuple(mu_config["Scopes"])
 
     # Get Package Path from config file
-    pplist = list()
+    
+    #Include packages from the config file
     if "PackagesPath" in mu_config:
         for a in mu_config["PackagesPath"]:
             # special entry that puts the directory of the repo config file in the package path list
@@ -101,6 +96,8 @@ if __name__ == '__main__':
                 pplist.append(os.path.dirname(mu_config_filepath))
             else:
                 pplist.append(a)
+
+    print("Packages we are using: ",pplist)
 
 
     #make Edk2Path object to handle all path operations 
