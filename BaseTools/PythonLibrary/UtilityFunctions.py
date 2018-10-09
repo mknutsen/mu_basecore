@@ -64,7 +64,7 @@ def reader(filepath, outstream, stream):
         f = open(filepath, "w")
 
     while True:
-        s = stream.readline()
+        s = stream.readline().decode()
         if not s:
             break
         if(f is not None):
