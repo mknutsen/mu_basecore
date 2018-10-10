@@ -79,6 +79,7 @@ class SelfDescribingEnvironment(object):
               matches[search_file].append(os.path.join(root, file))
             else:
               matches[search_file] = [os.path.join(root, file)]
+
     return matches
 
   def load_workspace(self):
