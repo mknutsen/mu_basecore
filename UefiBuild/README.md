@@ -12,7 +12,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 ## About
 
 This document will walkthrough the layout of a "typical" project Mu repo.
-Previously, the paths to critical files and build tools have been hard-coded into the primary build scripts (such as [PlatformBuild.p`](#platformbuildpy) If code was to be added or moved, all build scripts for all projects had to be updated to find the new code and consume it. Furthermore, the old build system required that all binaries, executables, artifacts, and other miscellaneous files be carried in the source tree somewhere. Since moving to Git, this cost has become increasingly burdensome to the point where some of the larger repos are almost unwieldly. 
+Previously, the paths to critical files and build tools have been hard-coded into the primary build scripts (such as [PlatformBuild.py`](#platformbuildpy) If code was to be added or moved, all build scripts for all projects had to be updated to find the new code and consume it. Furthermore, the old build system required that all binaries, executables, artifacts, and other miscellaneous files be carried in the source tree somewhere. Since moving to Git, this cost has become increasingly burdensome to the point where some of the larger repos are almost unwieldly. 
 
 The new Self Describing Environment system, along with the new Plugin behavior, aims to remedy some of these problems, while preserving flexibility and agility for further project growth. 
 
