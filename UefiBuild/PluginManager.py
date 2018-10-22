@@ -46,8 +46,10 @@ class PluginManager(object):
     #
     # Pass tuple of Environment Descriptor dictionaries to be loaded as plugins
     #
-    def SetListOfEnvironmentDescriptors(self, newlist):
+    def SetListOfEnvironmentDescriptors(self, newlist = []):
         failed = []
+        if newlist is None:
+            newlist = []
         for a in newlist:
             b = PluginDescriptor(a)
             if(self._load(b) == 0):

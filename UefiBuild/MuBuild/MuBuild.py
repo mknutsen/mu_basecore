@@ -36,6 +36,7 @@ import argparse
 #get path to self and then find SDE path and PythonLibrary path
 SCRIPT_PATH = os.path.dirname(os.path.abspath(__file__)) 
 SDE_PATH = os.path.dirname(SCRIPT_PATH) #Path to SDE build env
+BASECORE_PATH = os.path.dirname(SDE_PATH)
 PL_PATH = os.path.join(os.path.dirname(SDE_PATH), "BaseTools", "PythonLibrary")
 sys.path.append(SDE_PATH)
 sys.path.append(PL_PATH)
@@ -72,6 +73,9 @@ def get_mu_config():
     parser.add_argument ('-c', '--mu_config', dest = 'mu_config', required = True, type=str, help ='Provide the Mu config relative to the current working directory')
     parser.add_argument (
     '-p', '--pkg','--pkg-dir', dest = 'pkg', required = False, type=str,help = 'The package or folder you want to test/compile relative to the Mu Config'
+    )
+    parser.add_argument (
+    '-build-unit-tests', '--but', dest = 'build_unit_test', required = False, action="store_true",help = 'Flag to build unit tests'
     )
     args, sys.argv = parser.parse_known_args() 
     return args
@@ -128,6 +132,12 @@ if __name__ == '__main__':
         #this package is not at workspace root. 
         # Add self
         pplist.append(os.path.dirname(mu_config_filepath))
+
+    #check to make sure basecore is included
+    if(WORKSPACE_PATH != BASECORE_PATH):
+        #this package is not at workspace root. 
+        # Add self
+        pplist.append(BASECORE_PATH)
     
     #Include packages from the config file
     if "PackagesPath" in mu_config:
@@ -178,9 +188,15 @@ if __name__ == '__main__':
             raise Exception("Supplied Package {0} not Found".format(mu_pk_path))
     
     # Bring up the common minimum environment.
-    (build_env, shell_env) = SelfDescribingEnvironment.BootstrapEnvironment(edk2path.WorkspacePath, PROJECT_SCOPES)
+    #what do we do when basecore is not on the workspace path?
+    #(build_env, shell_env) = SelfDescribingEnvironment.BootstrapEnvironment(edk2path.WorkspacePath, PROJECT_SCOPES)
+    (build_env, shell_env) = SelfDescribingEnvironment.BootstrapEnvironment(BASECORE_PATH, PROJECT_SCOPES)
     CommonBuildEntry.update_process(edk2path.WorkspacePath, PROJECT_SCOPES)
     env = ShellEnvironment.GetBuildVars()
+
+    if buildArgs.build_unit_test == True:
+        logging.critical("Building unit tests as well")
+        env.SetValue("BLD_*_BUILD_UNIT_TESTS","TRUE", "Turning on via commandline option mubuild")
 
     
     archSupported = " ".join(mu_config["ArchSupported"])
@@ -233,7 +249,7 @@ if __name__ == '__main__':
             
             
             for target in targets:
-                logging.info("---Running {2}: {0} {1}".format(Descriptor.Name,target,pkgToRunOn))
+                logging.critical("---Running {2}: {0} {1}".format(Descriptor.Name,target,pkgToRunOn))
                 total_num +=1
                 ShellEnvironment.CheckpointBuildVars()
                 env = ShellEnvironment.GetBuildVars()
@@ -279,7 +295,7 @@ if __name__ == '__main__':
                         else:
                             logging.error("Test Failed: %s returned %d" % (Descriptor.Name, rc))
                     else:
-                        logging.info("Test Success {0} {1}".format(Descriptor.Name,target))
+                        logging.critical("  ->Test Success! %s" % Descriptor.Name)
            
                 #revert to the checkpoint we created previously
                 ShellEnvironment.RevertBuildVars()
