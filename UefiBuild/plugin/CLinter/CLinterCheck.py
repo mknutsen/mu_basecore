@@ -34,6 +34,36 @@ import re
 
 from Uefi.EdkII.Parsers.InfParser import *
 
+class CTokenizer(object):
+    specialTokens = ["(","[",")","]",";","{","}"]
+    @staticmethod
+    def Tokenize(lines):
+        current = ""
+        for letter,lineNum, _ in CTokenizer.AllLinesByCharacter(lines):
+            #logging.warning(letter)
+            currentNext = current + letter
+            if letter in CTokenizer.specialTokens:
+                if current is not "":
+                    yield (current.strip(),lineNum)
+                yield (letter,lineNum)
+                currentNext = ""
+            if letter is " ":
+                if current is not "":
+                    yield (current.strip(),lineNum)
+                currentNext = ""
+            current = currentNext
+            
+
+    @staticmethod
+    def AllLinesByCharacter(lines):
+        lineNum = 0
+        for line,lineNum in lines:
+            columnNum = 0
+            for letter in line:
+                columnNum += 0
+                yield (letter, lineNum, columnNum)
+            yield (" ", lineNum,columnNum)
+            
 class CLinterCheck(IMuBuildPlugin):
 
     @staticmethod
@@ -53,7 +83,6 @@ class CLinterCheck(IMuBuildPlugin):
             for a in lines:
                 lineNum += 1
                 
-                
                 #Check for multi-line comments
                 if multiLineComment is False:
                     if r"/*" in a:
@@ -70,21 +99,77 @@ class CLinterCheck(IMuBuildPlugin):
                     a = singleLineCommentRegex.sub(" ",a)
                 a = a.rstrip()
                 # append both the line and the linenumber to our list of code 
-                if a is "":
+                if len(a.strip()) == 0:
                     continue
                 out.append((a,lineNum))
             return out
         
         return None
+   
     
     def CheckCFile(self,source):
+        #https://github.com/tianocore/tianocore.github.io/wiki/Code-Style-C
         file = CLinterCheck.LoadFileStripComments(source)
         errors = list()
         #check ifs
+        ifs = list()
+        ifsBrackets = list()
+        ifsLastBracket = list()
+        for token,lineNum in CTokenizer.Tokenize(file):
+           
+            if token.lower() == "if" or token.lower() == "else":
+                ifs.insert(0,lineNum)
+                ifsBrackets.insert(0,0)
+                ifsLastBracket.insert(0,lineNum)
+
+            if len(ifs) > 0:
+                #logging.warning("{0}: {1}".format(lineNum,token))
+                if token == "(":
+                    ifsBrackets[0] += 1
+                if token == "{":
+                    if ifsBrackets[0] != 0:
+                        errors.append((source,ifs[0],"Unmatched brackets in if",""))
+                    if ifsLastBracket[0] != lineNum:
+                        errors.append((source,ifs[0],"You must have a bracket on the same line as the end of the if",""))
+                    ifsBrackets.pop()
+                    ifs.pop()
+                    ifsLastBracket.pop()
+                if token == ")":
+                    ifsLastBracket[0]=lineNum
+                    ifsBrackets[0] -= 1
+
+            #if "if" in token and not "{" in token:
+                #errors.append((source,lineNum,"If and { not same line"))
+            
+        #check tabs
         for line,lineNum in file:
-            if "if" in line and not "{" in line:
-                errors.append((source,lineNum,"If and { not same line"))
-                #logging.warning("{0}: {1}".format(lineNum,line))
+            if "\t" in line:
+                errors.append((source,lineNum,"Tabs are not allowed",line))
+
+        # check indentation 
+        previousIndent = 0
+        parenth = 0
+        for line,lineNum in file:
+            starting_size = len(line)
+            trimmed_size = len(line.lstrip())
+            indent = starting_size - trimmed_size
+            indentChange = indent - previousIndent
+            
+            if line.endswith("(") or line.endswith("&&") or line.endswith("||") or line.endswith(","):
+                if parenth == 0:
+                    previousIndent = indent
+                parenth = 1
+            elif parenth > 0 and line.endswith(");"):
+                parenth = 0
+            elif parenth > 0 and line.endswith("{"):
+                parenth = 0
+            elif parenth == 0:
+                if indentChange > 2:
+                    errors.append((source,lineNum,"This line is indented differently than it's parents by {0} spaces. It was previously {1}".format(indentChange,previousIndent),line))
+                previousIndent = indent
+            
+        #check variables
+        
         return errors
 
     def CheckHFile(self,source):
@@ -144,9 +229,9 @@ class CLinterCheck(IMuBuildPlugin):
             if source.endswith(".h"):
                 result = self.CheckHFile(source)
             
-            for error in result:
+            for sourcefile,line,error,code in result:
                 overall_status += 1
-                logging.error(error)
+                tc.LogStdError("CLinter.Warning -> {0}  at line {1} in {2}".format(error,line,sourcefile))
 
             #figure out how to handle the result
         

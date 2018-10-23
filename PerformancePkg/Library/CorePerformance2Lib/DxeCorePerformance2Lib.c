@@ -123,7 +123,7 @@ GetModuleGuidFromHandle (
       }
     }
   }
-
+  
   if (!EFI_ERROR (Status) && LoadedImage != NULL) {
     //
     // Get Module Guid from DevicePath.
@@ -131,7 +131,7 @@ GetModuleGuidFromHandle (
     if (LoadedImage->FilePath != NULL &&
         LoadedImage->FilePath->Type == MEDIA_DEVICE_PATH &&
         LoadedImage->FilePath->SubType == MEDIA_PIWG_FW_FILE_DP
-       ) {
+      ) {
       //
       // Determine GUID associated with module logging performance
       //
@@ -147,12 +147,12 @@ GetModuleGuidFromHandle (
   if (ModuleGuid != NULL) {
     CopyMem (ModuleGuid, TempGuid, sizeof(EFI_GUID));
     if (CompareGuid(TempGuid, &gZeroGuid) && (Handle != NULL) && !ModuleGuidIsGet) {
-        //
-        // Copy a signature string UNKNHNDL into upper 8 bytes and the handle address into lower
-        //
-        *((UINT64 *)ModuleGuid) = (UINT64) Handle;
-        Signature = SIGNATURE_64 ('U', 'N', 'K', 'N', 'H', 'N', 'D', 'L');
-        CopyMem (((UINT8 *)ModuleGuid) + sizeof(UINT64), &Signature, sizeof(Signature));
+      //
+      // Copy a signature string UNKNHNDL into upper 8 bytes and the handle address into lower
+      //
+      *((UINT64 *)ModuleGuid) = (UINT64) Handle;
+      Signature = SIGNATURE_64 ('U', 'N', 'K', 'N', 'H', 'N', 'D', 'L');
+      CopyMem (((UINT8 *)ModuleGuid) + sizeof(UINT64), &Signature, sizeof(Signature));
     }
   }
 
@@ -343,7 +343,8 @@ CreatePerformanceMeasurement (
       DEBUG((DEBUG_ERROR, "DxeCorePerformanceLib - %a - Out of space\n", __FUNCTION__));
       return EFI_OUT_OF_RESOURCES;
     }
-  } else {
+  } 
+  else {
     //
     // Check if pre-allocated buffer is full
     //

@@ -154,35 +154,35 @@ LocateAcpiTableBySignature (
   IN OUT  UINTN                         *Handle
   )
 {
-    EFI_STATUS              Status;
-    INTN                    Index;
-    EFI_ACPI_TABLE_VERSION  Version;
-    EFI_ACPI_SDT_PROTOCOL  *AcpiSdt = NULL;
+  EFI_STATUS              Status;
+  INTN                    Index;
+  EFI_ACPI_TABLE_VERSION  Version;
+  EFI_ACPI_SDT_PROTOCOL  *AcpiSdt = NULL;
 
 
-    Status = gBS->LocateProtocol (&gEfiAcpiSdtProtocolGuid, NULL, (VOID **) &AcpiSdt);
+  Status = gBS->LocateProtocol (&gEfiAcpiSdtProtocolGuid, NULL, (VOID **) &AcpiSdt);
 
-    if (EFI_ERROR(Status) || (AcpiSdt == NULL)) {
-        return EFI_NOT_FOUND;
+  if (EFI_ERROR(Status) || (AcpiSdt == NULL)) {
+    return EFI_NOT_FOUND;
+  }
+
+  //
+  // Locate table with matching ID
+  //
+  Version = 0;
+  Index = 0;
+  do {
+    Status = AcpiSdt->GetAcpiTable (Index, (EFI_ACPI_SDT_HEADER **)Table, &Version, Handle);
+    if (EFI_ERROR(Status)) {
+      break;
     }
+    Index++;
+  } while ((*Table)->Signature != Signature);
 
-    //
-    // Locate table with matching ID
-    //
-    Version = 0;
-    Index = 0;
-    do {
-        Status = AcpiSdt->GetAcpiTable (Index, (EFI_ACPI_SDT_HEADER **)Table, &Version, Handle);
-        if (EFI_ERROR(Status)) {
-            break;
-        }
-        Index++;
-    } while ((*Table)->Signature != Signature);
-
-    //
-    // If we found the table, there will be no error.
-    //
-    return Status;
+  //
+  // If we found the table, there will be no error.
+  //
+  return Status;
 }
 
 /**
