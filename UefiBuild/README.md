@@ -96,15 +96,13 @@ This section describes most of the relevant script and module files for driving 
 - The SDE scopes utilized, and their hierarchical ordering. 
 - The UEFI Module Packages to search for drivers, libraries, and other UEFI code. 
 
-This file is still the entry point to the build process, but rather than dispatching the worker directly, it calls into [CommonBuildEntry.p`](#commonbuildentrypy) to maximize code reuse. 
+This file is still the entry point to the build process, but rather than dispatching the worker directly, it calls into [CommonBuildEntry.py`](#commonbuildentrypy) to maximize code reuse. 
 
 The purpose of this bifurcation is twofold:
 1) it is required by the bootstrapping process to ensure that namespaces are loaded in a logical order without making assumptions about what is or is not available and without causing potential runtime errors with circular definitions, and to a lesser extent
 2) provides the separation of configuration from business logic, since configuration is the most likely thing needing customization between platforms. 
 
 Command line arguments can be used here to set environment variables that are used during the build process. A couple helpful ones are:
-- `BLD_*_BUILD_ALL_UNIT_TESTS`
-    - Builds all unit tests listed in the `unit_test.partial.dsc`
 - `BUILD_REPORTING=TRUE BUILD_REPORTING_TYPE="PCD"`
     - Creates a detailed build report indicating which modules were built and what PCD settings were used at compilation time
 - `TOOL_CHAIN_TAG=GCC5`
