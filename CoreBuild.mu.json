@@ -20,6 +20,11 @@
             "Url": "https://github.com/Microsoft/mu_tiano_plus.git",
             "Branch": "release/20180529"
         #    "Commit": "*"
+        },
+        {
+            "Path": "MU_BUILD",
+            "Url": "https://windowspartners.visualstudio.com/MSCoreUEFI/_git/mu_build",
+            "Branch": "https://windowspartners.visualstudio.com/MSCoreUEFI/_git/mu_build"
         }
     ],
 
