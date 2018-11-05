@@ -24,7 +24,7 @@
         {
             "Path": "MU_BUILD",
             "Url": "https://github.com/Microsoft/mu_build.git",
-            "Branch": "master"
+            "Branch": "release/201808"
         }
     ],
 
