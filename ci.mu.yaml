@@ -12,7 +12,7 @@
         {
             "Path": "MU_BUILD",
             "Url": "https://github.com/Microsoft/mu_build.git",
-            "Branch": "release/201808"
+            "Branch": "personal/maknutse/pipremoval"
         },
         {
             "Path": "Silicon/Arm/TIANO",
