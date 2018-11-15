@@ -32,10 +32,17 @@ import re
 import datetime
 import os
 import logging
+<<<<<<< HEAD
 import PluginManager
 from Uefi.Capsule.CatGenerator import *
 from Uefi.Capsule.InfGenerator import *
 from UtilityFunctions import CatalogSignWithSignTool
+=======
+from MuEnvironment import PluginManager
+from MuPythonLibrary.Uefi.Capsule.CatGenerator import *
+from MuPythonLibrary.Uefi.Capsule.InfGenerator import *
+from MuPythonLibrary.UtilityFunctions import CatalogSignWithSignTool
+>>>>>>> moving mu_build 1808 in HEAD=7f6adb264392130c1b9aa01b8796fa9fdf87b66f
 
 
 

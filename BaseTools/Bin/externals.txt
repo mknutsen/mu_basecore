@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 Win32  https://svn.code.sf.net/p/edk2-toolbinaries/code/trunk/Win32
+=======
+Win32  https://svn.code.sf.net/p/edk2-toolbinaries/code/trunk/Win32
+>>>>>>> moving mu_build 1808 in HEAD=7f6adb264392130c1b9aa01b8796fa9fdf87b66f

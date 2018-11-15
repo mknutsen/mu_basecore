@@ -37,7 +37,11 @@
 
 IDENTIFIER = Default TOOL_CHAIN_CONF
 
+<<<<<<< HEAD
 # 
+=======
+#
+>>>>>>> moving mu_build 1808 in HEAD=7f6adb264392130c1b9aa01b8796fa9fdf87b66f
 # VS2015
 DEFINE VS2015x86_BIN    = ENV(VS140COMNTOOLS)\..\..\Vc\Bin
 #//C:\Program Files (x86)\Microsoft Visual Studio 14.0\Vc\bin

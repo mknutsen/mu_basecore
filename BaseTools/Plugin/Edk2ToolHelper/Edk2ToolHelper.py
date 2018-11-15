@@ -1,9 +1,18 @@
+<<<<<<< HEAD
 import PluginManager
 import logging
 import os
 from UtilityFunctions import RunCmd
 from UtilityFunctions import RunPythonScript
 from UtilityFunctions import CatalogSignWithSignTool
+=======
+from MuEnvironment import PluginManager
+import logging
+import os
+from MuPythonLibrary.UtilityFunctions import RunCmd
+from MuPythonLibrary.UtilityFunctions import RunPythonScript
+from MuPythonLibrary.UtilityFunctions import CatalogSignWithSignTool
+>>>>>>> moving mu_build 1808 in HEAD=7f6adb264392130c1b9aa01b8796fa9fdf87b66f
 import shutil
 import datetime
 
@@ -23,11 +32,19 @@ class Edk2ToolHelper(PluginManager.IUefiHelperPlugin):
     # OutputBin: file path to write Output binary to
     # VersionInt: integer parameter for the version
     # LsvInt: Integer parameter for the lowest supported version
+<<<<<<< HEAD
     # DepList: (optional) list of dependences. Dep format is tuple (FmpGuidForDep, FmpIndex, IntFmpMinVersion, IntFlags ) 
     ### Dep format can change overtime.  Flags can be added for new behavior.  See the version and library implementing behavior.  
     ### V1 details.  
     ####Flag bit 0: dep MUST be in system if 1.  Otherwise dep only applied if fmp found in system.
     ####Flag bit 1: dep version MUST be exact match if 1.  Otherwise dep must be equal or greater than version.    
+=======
+    # DepList: (optional) list of dependences. Dep format is tuple (FmpGuidForDep, FmpIndex, IntFmpMinVersion, IntFlags )
+    ### Dep format can change overtime.  Flags can be added for new behavior.  See the version and library implementing behavior.
+    ### V1 details.
+    ####Flag bit 0: dep MUST be in system if 1.  Otherwise dep only applied if fmp found in system.
+    ####Flag bit 1: dep version MUST be exact match if 1.  Otherwise dep must be equal or greater than version.
+>>>>>>> moving mu_build 1808 in HEAD=7f6adb264392130c1b9aa01b8796fa9fdf87b66f
     ##
     @staticmethod
     def PackageMsFmpHeader(InputBin, OutputBin, VersionInt, LsvInt, DepList = []):
@@ -53,13 +70,22 @@ class Edk2ToolHelper(PluginManager.IUefiHelperPlugin):
     # Function to create binary wrapped with FmpImage Auth using input supplied
     # InputBin: Input binary to wrap with new fmp image auth header (file path)
     # OutputBin: file path to write final output binary to
+<<<<<<< HEAD
     # DevPfxFilePath: (optional) file path to dev pfx file to sign with.  If not supplied production signing is assumed. 
     # 
+=======
+    # DevPfxFilePath: (optional) file path to dev pfx file to sign with.  If not supplied production signing is assumed.
+    #
+>>>>>>> moving mu_build 1808 in HEAD=7f6adb264392130c1b9aa01b8796fa9fdf87b66f
     ##
     @staticmethod
     def PackageFmpImageAuth(InputBin, OutputBin, DevPfxFilePath = None, DevPfxPassword = None, DetachedSignatureFile = None, Eku = None):
         logging.debug("CapsulePackage: Fmp Image Auth Header/Signing")
+<<<<<<< HEAD
   
+=======
+
+>>>>>>> moving mu_build 1808 in HEAD=7f6adb264392130c1b9aa01b8796fa9fdf87b66f
         #temp output dir is in the outputbin folder
         ret = 0
         TempOutDir = os.path.join(os.path.dirname(os.path.abspath(OutputBin)), "_Temp_FmpImageAuth_" + str(datetime.datetime.now().time()).replace(":", "_"))
@@ -73,7 +99,11 @@ class Edk2ToolHelper(PluginManager.IUefiHelperPlugin):
         if(DevPfxFilePath is not None):
             logging.debug("FmpImageAuth is dev signed. Do entire process in 1 step locally.")
 
+<<<<<<< HEAD
              #Find Signtool 
+=======
+             #Find Signtool
+>>>>>>> moving mu_build 1808 in HEAD=7f6adb264392130c1b9aa01b8796fa9fdf87b66f
             SignToolPath = os.path.join(os.getenv("ProgramFiles(x86)"), "Windows Kits", "8.1", "bin", "x64", "signtool.exe")
             if not os.path.exists(SignToolPath):
                 SignToolPath = SignToolPath.replace('8.1', '10')
@@ -95,17 +125,30 @@ class Edk2ToolHelper(PluginManager.IUefiHelperPlugin):
             logging.debug("FmpImageAuth is Production signed")
 
             if(DetachedSignatureFile is None):
+<<<<<<< HEAD
                 logging.debug("FmpImageAuth Step1: Make ToBeSigned file for production") 
                 cmd = cmd + " --production"  
                 ret = RunPythonScript(cmd, workingdir=TempOutDir)
                 if(ret != 0):
                     raise Exception("GenFmpImageAuth Failed production signing: step 1.  Errorcode %d" % ret)
                 #now we have a file to sign at 
+=======
+                logging.debug("FmpImageAuth Step1: Make ToBeSigned file for production")
+                cmd = cmd + " --production"
+                ret = RunPythonScript(cmd, workingdir=TempOutDir)
+                if(ret != 0):
+                    raise Exception("GenFmpImageAuth Failed production signing: step 1.  Errorcode %d" % ret)
+                #now we have a file to sign at
+>>>>>>> moving mu_build 1808 in HEAD=7f6adb264392130c1b9aa01b8796fa9fdf87b66f
                 TBS = os.path.join(os.path.dirname(OutputBin), "payload.Temp.ToBeSigned")
                 if(not os.path.exists(TBS)):
                     raise Exception("GenFmpImageAuth didn't create ToBeSigned file")
                 os.rename(TBS, OutputBin)
+<<<<<<< HEAD
             
+=======
+
+>>>>>>> moving mu_build 1808 in HEAD=7f6adb264392130c1b9aa01b8796fa9fdf87b66f
             else:
                 logging.debug("FmpImageAuth Step3: Final Packaging of production signed")
                 cmd = cmd + " --production -s " + DetachedSignatureFile
@@ -133,7 +176,11 @@ class Edk2ToolHelper(PluginManager.IUefiHelperPlugin):
         if(FmpDeviceGuid == None):
             logging.debug("CapsulePackage: Using default industry standard FMP guid")
             FmpDeviceGuid = "6dcbd5ed-e82d-4c44-bda1-7194199ad92a"
+<<<<<<< HEAD
             
+=======
+
+>>>>>>> moving mu_build 1808 in HEAD=7f6adb264392130c1b9aa01b8796fa9fdf87b66f
         cmd = "genfv -o " + OutputBin
         cmd = cmd + " -g " + FmpDeviceGuid
         cmd = cmd + " --capsule -v -f " + InputBin
@@ -141,4 +188,8 @@ class Edk2ToolHelper(PluginManager.IUefiHelperPlugin):
         ret = RunCmd(cmd)
         if(ret != 0):
             raise Exception("GenFv Failed with errorcode" % ret)
+<<<<<<< HEAD
         return ret 
+=======
+        return ret
+>>>>>>> moving mu_build 1808 in HEAD=7f6adb264392130c1b9aa01b8796fa9fdf87b66f

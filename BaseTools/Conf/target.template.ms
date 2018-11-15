@@ -65,7 +65,11 @@ TOOL_CHAIN_CONF       = Conf/tools_def.txt
 #  TAGNAME               List      Optional   Specify the name(s) of the tools_def.txt TagName to use.
 #                                             If not specified, all applicable TagName tools will be
 #                                             used for the build.  The list uses space character separation.
+<<<<<<< HEAD
 TOOL_CHAIN_TAG        = VSLATESTx86   
+=======
+TOOL_CHAIN_TAG        = VSLATESTx86
+>>>>>>> moving mu_build 1808 in HEAD=7f6adb264392130c1b9aa01b8796fa9fdf87b66f
 
 # MAX_CONCURRENT_THREAD_NUMBER  NUMBER  Optional  The number of concurrent threads. Recommend to set this
 #                                                 value to one more than the number of your compurter

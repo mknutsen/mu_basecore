@@ -3,10 +3,17 @@
 ## around the payload file.
 ##
 ## For dev purposes this script takes a payload file and signs it and encapsulates it
+<<<<<<< HEAD
 ## in the correct headers.  This file is then ready to be put into a FMP capsule. 
 ##
 ## For production use this script has a production flag and a DetachedSignature parameter
 ## which allows the signing to be done offline. 
+=======
+## in the correct headers.  This file is then ready to be put into a FMP capsule.
+##
+## For production use this script has a production flag and a DetachedSignature parameter
+## which allows the signing to be done offline.
+>>>>>>> moving mu_build 1808 in HEAD=7f6adb264392130c1b9aa01b8796fa9fdf87b66f
 ##
 ## General process:
 ##   Phase 1: Create payload file by combining payload and monotonic count
@@ -25,8 +32,13 @@ import datetime
 import struct
 import subprocess
 import uuid
+<<<<<<< HEAD
 from UtilityFunctions import RunCmd
 from UtilityFunctions import DetachedSignWithSignTool
+=======
+from MuPythonLibrary.UtilityFunctions import RunCmd
+from MuPythonLibrary.UtilityFunctions import DetachedSignWithSignTool
+>>>>>>> moving mu_build 1808 in HEAD=7f6adb264392130c1b9aa01b8796fa9fdf87b66f
 
 
 gPhase3PackageOnly = False
@@ -103,7 +115,11 @@ def main():
 
         logging.debug("Using PFX file: " + str(options.PfxPath))
 
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> moving mu_build 1808 in HEAD=7f6adb264392130c1b9aa01b8796fa9fdf87b66f
     logging.debug("Production Mode: " + str(options.ProductionSign))
     logging.debug("Monotonic Count: " + str(options.MonotonicCount))
     logging.debug("Output File: " + str(options.OutputFile))
@@ -115,7 +131,11 @@ def main():
 
     #if not doing phase2 only then we need to do presign stuff
     if not gPhase3PackageOnly:
+<<<<<<< HEAD
         #Since we are not in phase3packageonly mode we know no DetachedSignature file speficied.  Set to the default output. 
+=======
+        #Since we are not in phase3packageonly mode we know no DetachedSignature file speficied.  Set to the default output.
+>>>>>>> moving mu_build 1808 in HEAD=7f6adb264392130c1b9aa01b8796fa9fdf87b66f
         OutputDir = os.path.dirname(os.path.abspath(options.OutputFile))
         logging.debug("Temp files will be written to: " + str(OutputDir))
 
@@ -132,7 +152,11 @@ def main():
         pf.close()
         f.close()
 
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> moving mu_build 1808 in HEAD=7f6adb264392130c1b9aa01b8796fa9fdf87b66f
         #if not doing production signing then sign it
         if not options.ProductionSign:
             #check sign tool
@@ -141,12 +165,21 @@ def main():
             else:
                 logging.critical("Can't find signtool at location: " + options.SignToolPath)
                 return -5
+<<<<<<< HEAD
             
             ret = DetachedSignWithSignTool(
                 options.SignToolPath, 
                 FileToSign,  
                 options.DetachedSignature, 
                 options.PfxPath, 
+=======
+
+            ret = DetachedSignWithSignTool(
+                options.SignToolPath,
+                FileToSign,
+                options.DetachedSignature,
+                options.PfxPath,
+>>>>>>> moving mu_build 1808 in HEAD=7f6adb264392130c1b9aa01b8796fa9fdf87b66f
                 PfxPass=options.PfxPass,
                 Eku=options.Eku
                 )
@@ -158,7 +191,11 @@ def main():
             if not options.dirty:
                 logging.debug("Delete temp file: " + str(FileToSign))
                 os.remove(FileToSign)
+<<<<<<< HEAD
                 
+=======
+
+>>>>>>> moving mu_build 1808 in HEAD=7f6adb264392130c1b9aa01b8796fa9fdf87b66f
 
         else:
             logging.critical("File To Production Sign Created: " + FileToSign)
@@ -167,21 +204,37 @@ def main():
     #package the final output (phase 3)
     wcugSize = os.path.getsize(options.DetachedSignature)
     logging.debug("PKCS7 Signed Data is size: " + str(wcugSize))
+<<<<<<< HEAD
     wcugSize = wcugSize + 4 + 2 + 2 + 16;  # matches the hdr + guid below
+=======
+    wcugSize = wcugSize + 4 + 2 + 2 + 16  # matches the hdr + guid below
+>>>>>>> moving mu_build 1808 in HEAD=7f6adb264392130c1b9aa01b8796fa9fdf87b66f
 
     #
     #Header layout and structures defined in UEFI 2.4 Errata B.
     #
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> moving mu_build 1808 in HEAD=7f6adb264392130c1b9aa01b8796fa9fdf87b66f
     #EFI_FIRMWARE_IMAGE_AUTH
         #UINT64 Monotonic Count                  <--count value used when signing it
         #WIN_CERTIFICATE_UEFI_GUID AuthInfo
             #WIN_CERTIFICATE Hdr
+<<<<<<< HEAD
                 #UINT32 dwLength                 <--Length of cert header 
                 #UINT16 wRevision                <--Revision level of win cert current 0x0200
                 #UINT16 wCertType                <--WIN_CERT_TYPE_EFI_GUID  0x0EF1
             #EFI_GUID CertType                   <--gEfiCertPkcs7Guid  = { 0x4aafd29d, 0x68df, 0x49ee, {0x8a, 0xa9, 0x34, 0x7d, 0x37, 0x56, 0x65, 0xa7 }}
             #UINT8[] PKCS7 SignedData            <--DetachedSignature from signtool 
+=======
+                #UINT32 dwLength                 <--Length of cert header
+                #UINT16 wRevision                <--Revision level of win cert current 0x0200
+                #UINT16 wCertType                <--WIN_CERT_TYPE_EFI_GUID  0x0EF1
+            #EFI_GUID CertType                   <--gEfiCertPkcs7Guid  = { 0x4aafd29d, 0x68df, 0x49ee, {0x8a, 0xa9, 0x34, 0x7d, 0x37, 0x56, 0x65, 0xa7 }}
+            #UINT8[] PKCS7 SignedData            <--DetachedSignature from signtool
+>>>>>>> moving mu_build 1808 in HEAD=7f6adb264392130c1b9aa01b8796fa9fdf87b66f
     #UINT8[] Payload                             <--Payload file
 
     #struct format for the header
@@ -206,7 +259,11 @@ def main():
             logging.debug("Delete temp file: " + str(options.DetachedSignature))
             os.remove(options.DetachedSignature)
 
+<<<<<<< HEAD
             
+=======
+
+>>>>>>> moving mu_build 1808 in HEAD=7f6adb264392130c1b9aa01b8796fa9fdf87b66f
     return 0
 
 

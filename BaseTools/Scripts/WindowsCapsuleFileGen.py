@@ -34,6 +34,7 @@ import logging
 import argparse
 import datetime
 
+<<<<<<< HEAD
 #Add PythonLibrary base to path for import
 sp = os.path.dirname(os.path.realpath(sys.argv[0]))
 sys.path.append(os.path.join(os.path.dirname(sp), "PythonLibrary"))
@@ -42,6 +43,11 @@ sys.path.append(os.path.join(os.path.dirname(sp), "PythonLibrary"))
 from Uefi.Capsule.CatGenerator import *
 from Uefi.Capsule.InfGenerator import *
 from UtilityFunctions import CatalogSignWithSignTool
+=======
+from MuPythonLibrary.Uefi.Capsule.CatGenerator import *
+from MuPythonLibrary.Uefi.Capsule.InfGenerator import *
+from MuPythonLibrary.UtilityFunctions import CatalogSignWithSignTool
+>>>>>>> moving mu_build 1808 in HEAD=7f6adb264392130c1b9aa01b8796fa9fdf87b66f
 
 def main():
     parser = argparse.ArgumentParser(description='Generate Windows Firmware Update Platform Files for Capsules')

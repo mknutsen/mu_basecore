@@ -44,6 +44,12 @@ Abstract:
 #define MaxPE 10
 #define MaxDE 10
 
+<<<<<<< HEAD
+=======
+// MS_CHANGE - Ignore the casting warnings in the fprintf statements below.
+#pragma warning( disable: 4477 )
+
+>>>>>>> moving mu_build 1808 in HEAD=7f6adb264392130c1b9aa01b8796fa9fdf87b66f
 
 STATIC
 VOID 
@@ -531,8 +537,13 @@ Returns:
   //Read all driver files
   for (Index = 0; Index < DriverFreeIndex; Index++)
   {
+<<<<<<< HEAD
 	  int tread = 0;
 	  int readsize = 0;
+=======
+    int inner_tread = 0;       // MS_CHANGE - Don't override local variable name implicitly.
+    int inner_readsize = 0;    // MS_CHANGE - Don't override local variable name implicitly.
+>>>>>>> moving mu_build 1808 in HEAD=7f6adb264392130c1b9aa01b8796fa9fdf87b66f
 	  FpFile = fopen(DriverFileList[Index].FileName, "rb");
 
 	  if (FpFile == NULL) {
@@ -550,6 +561,7 @@ Returns:
 		  return STATUS_ERROR;
 	  }
 
+<<<<<<< HEAD
 	  tread = DriverFileList[Index].DataSize;
 
 	  //read it
@@ -557,6 +569,18 @@ Returns:
 	  while (readsize < tread)
 	  {
 		  readsize += fread((DriverFileList[Index].FileData + readsize), sizeof(UINT8), (tread - readsize), FpFile);
+=======
+    // MS_CHANGE - Don't override local variable name implicitly.
+    inner_tread = DriverFileList[Index].DataSize;
+
+	  //read it
+    // MS_CHANGE - Don't override local variable name implicitly.
+    inner_readsize = 0;
+    while (inner_readsize < inner_tread)
+	  {
+      // MS_CHANGE - Don't override local variable name implicitly.
+      inner_readsize += fread((DriverFileList[Index].FileData + inner_readsize), sizeof(UINT8), (inner_tread - inner_readsize), FpFile);
+>>>>>>> moving mu_build 1808 in HEAD=7f6adb264392130c1b9aa01b8796fa9fdf87b66f
 	  }
 	  fclose(FpFile);
 

@@ -3,7 +3,11 @@
   "type": "nuget",
   "name": "Mu-Basetools-Win32",
   "source": "https://api.nuget.org/v3/index.json",
+<<<<<<< HEAD
   "version": "0.27752.1",
+=======
+  "version": "0.9.0",
+>>>>>>> moving mu_build 1808 in HEAD=7f6adb264392130c1b9aa01b8796fa9fdf87b66f
   "flags": ["set_shell_var", "set_path"],
   "var_name": "EDK_TOOLS_PATH"
 }
