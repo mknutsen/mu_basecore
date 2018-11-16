@@ -1,11 +1,12 @@
-import PluginManager
+from MuEnvironment import PluginManager
 import logging
 import os
-from UtilityFunctions import RunCmd
-from UtilityFunctions import RunPythonScript
-from UtilityFunctions import CatalogSignWithSignTool
+from MuPythonLibrary.UtilityFunctions import RunCmd
+from MuPythonLibrary.UtilityFunctions import RunPythonScript
+from MuPythonLibrary.UtilityFunctions import CatalogSignWithSignTool
 import shutil
 import datetime
+
 
 class Edk2ToolHelper(PluginManager.IUefiHelperPlugin):
 
