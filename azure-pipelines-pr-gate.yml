@@ -24,7 +24,7 @@ steps:
   displayName: 'Install/Upgrade pip'
 
 - script: pip install --upgrade mu_build --force-reinstall --no-cache-dir
-  displayName: 'Install/Upgrade mu_bootstrap'
+  displayName: 'Install/Upgrade mu_build'
 
 #Bootstrap repo
 - task: CmdLine@1
