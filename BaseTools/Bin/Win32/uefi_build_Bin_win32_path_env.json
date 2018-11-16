@@ -1,5 +1,4 @@
 {
   "scope": "global",
-  "flags": ["set_path", "set_shell_var"],
-  "var_name": "NUGET_PATH"
+  "flags": ["set_path"]
 }
