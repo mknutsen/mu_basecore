@@ -49,7 +49,7 @@ Abstract:
 #pragma warning( disable: 4477 )
 
 STATIC
-VOID https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-4-c4481?view=vs-2017
+VOID 
 Version (
   VOID
 )
