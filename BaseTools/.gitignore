@@ -18,5 +18,5 @@ Source/C/bin/
 Source/C/libs/
 Bin/Win32
 Lib
-# Ignore SDE files.
+# Ignore SDE files. # MU_CHANGE
 *_extdep/

@@ -44,10 +44,12 @@ Abstract:
 #define MaxPE 10
 #define MaxDE 10
 
+// 'function' : format string 'string' requires an argument of type 'type', but variadic argument number has type 'type'
+// https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/c4477?view=vs-2017
 #pragma warning( disable: 4477 )
 
 STATIC
-VOID 
+VOID https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-4-c4481?view=vs-2017
 Version (
   VOID
 )

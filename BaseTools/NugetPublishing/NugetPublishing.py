@@ -264,14 +264,13 @@ class NugetSupport(object):
         f.write(xmlstring)
         f.close() 
 
-        #run nuget
-        # NOTE: This is currently Windows-specific.
-        cmd = ["nuget.exe", "pack", nuspec]
+        # run nuget
+        cmd = GetNugetCmd()
+        cmd += ["pack", nuspec]
         cmd += ["-OutputDirectory", '"'+OutputDirectory+'"']
         cmd += ["-Verbosity", "detailed"]
         # cmd += ["-NonInteractive"]
-        cmd_string = " ".join(cmd)
-        ret = RunCmd(cmd_string)
+        ret = RunCmd(cmd[0], " ".join(cmd[1:]))
 
         if(ret != 0):
             logging.error("Failed on nuget commend.  RC = 0x%x" % ret)
@@ -286,13 +285,14 @@ class NugetSupport(object):
             raise Exception("Invalid file path for NuPkg file")
         logging.debug("Pushing %s file to server %s" % (nuPackage, self.ConfigData["server_url"]))
 
-        cmd = ["nuget.exe", "push", nuPackage]
+        cmd = GetNugetCmd()
+        cmd += ["push", nuPackage]
         cmd += ["-Verbosity", "detailed"]
         # cmd += ["-NonInteractive"]
         cmd += ["-Source", self.ConfigData["server_url"]]
         cmd += ["-ApiKey", apikey]
         cmd_string = " ".join(cmd)
-        ret = RunCmd(cmd_string)
+        ret = RunCmd(cmd[0], " ".join(cmd[1:]))
 
         if(ret != 0):
             logging.error("Failed on nuget commend.  RC = 0x%x" % ret)

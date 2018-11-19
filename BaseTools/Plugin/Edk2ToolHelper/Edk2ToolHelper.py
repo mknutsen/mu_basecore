@@ -33,10 +33,10 @@ class Edk2ToolHelper(PluginManager.IUefiHelperPlugin):
     @staticmethod
     def PackageMsFmpHeader(InputBin, OutputBin, VersionInt, LsvInt, DepList = []):
         logging.debug("CapsulePackage: Fmp Header")
-        cmd = "genmspayloadheader.exe -o " + OutputBin
-        cmd = cmd + " --version " + hex(VersionInt).rstrip("L")
-        cmd = cmd + " --lsv " + hex(LsvInt)
-        cmd = cmd + " -p " + InputBin + " -v"
+        params = "-o " + OutputBin
+        params = params + " --version " + hex(VersionInt).rstrip("L")
+        params = params + " --lsv " + hex(LsvInt)
+        params = params + " -p " + InputBin + " -v"
         #append depedency if supplied
         for dep in DepList:
             depGuid = dep[0]
@@ -44,8 +44,8 @@ class Edk2ToolHelper(PluginManager.IUefiHelperPlugin):
             depMinVer = hex(dep[2])
             depFlag = hex(dep[3])
             logging.debug("Adding a Dependency:\n\tFMP Guid: %s \nt\tFmp Descriptor Index: %d \n\tFmp DepVersion: %s \n\tFmp Flags: %s\n" % (depGuid, depIndex, depMinVer, depFlag))
-            cmd += " --dep " + depGuid + " " + str(depIndex) + " " + depMinVer + " " + depFlag
-        ret = RunCmd(cmd)
+            params += " --dep " + depGuid + " " + str(depIndex) + " " + depMinVer + " " + depFlag
+        ret = RunCmd("genmspayloadheader.exe", params)
         if(ret != 0):
             raise Exception("GenMsPayloadHeader Failed with errorcode %d" % ret)
         return ret
@@ -121,9 +121,9 @@ class Edk2ToolHelper(PluginManager.IUefiHelperPlugin):
     @staticmethod
     def PackageFmpCapsuleHeader(InputBin, OutputBin, FmpGuid):
         logging.debug("CapsulePackage: Fmp Capsule Header")
-        cmd = "genfmpcap.exe -o " + OutputBin
-        cmd = cmd + " -p " + InputBin + " " + FmpGuid + " 1 0 -V"
-        ret = RunCmd(cmd)
+        params = "-o " + OutputBin
+        params = params + " -p " + InputBin + " " + FmpGuid + " 1 0 -V"
+        ret = RunCmd("genfmpcap.exe", paramsparams)
         if(ret != 0):
             raise Exception("GenFmpCap Failed with errorcode" % ret)
         return ret
@@ -134,12 +134,12 @@ class Edk2ToolHelper(PluginManager.IUefiHelperPlugin):
         if(FmpDeviceGuid == None):
             logging.debug("CapsulePackage: Using default industry standard FMP guid")
             FmpDeviceGuid = "6dcbd5ed-e82d-4c44-bda1-7194199ad92a"
-            
-        cmd = "genfv -o " + OutputBin
-        cmd = cmd + " -g " + FmpDeviceGuid
-        cmd = cmd + " --capsule -v -f " + InputBin
-        cmd = cmd + " --capFlag PersistAcrossReset --capFlag InitiateReset"
-        ret = RunCmd(cmd)
+
+        params = "-o " + OutputBin
+        params = params + " -g " + FmpDeviceGuid
+        params = params + " --capsule -v -f " + InputBin
+        params = params + " --capFlag PersistAcrossReset --capFlag InitiateReset"
+        ret = RunCmd("genfv", params)
         if(ret != 0):
             raise Exception("GenFv Failed with errorcode" % ret)
-        return ret 
+        return ret
