@@ -146,6 +146,7 @@ def TrimPreprocessedFile(Source, Target, ConvertHex, TrimLong):
         EdkLogger.error("Trim", FILE_OPEN_FAILURE, ExtraData=Source)
 
     # read whole file
+    # MS_CHANGE - Add extra debugging to improve error identification.
     try:
         Lines = f.readlines()
     except:
