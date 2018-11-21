@@ -67,10 +67,10 @@ class Edk2ToolHelper(PluginManager.IUefiHelperPlugin):
         logging.debug("Temp Output dir for FmpImageAuth: %s" % TempOutDir)
         os.mkdir(TempOutDir)
         cmd =  "GenFmpImageAuth.py"
-        cmd = cmd + " -o " + OutputBin
-        cmd = cmd + " -p " + InputBin + " -m 1"
-        cmd = cmd + " --debug"
-        cmd = cmd + " -l " + os.path.join(TempOutDir, "GenFmpImageAuth_Log.log")
+        params = "-o " + OutputBin
+        params = params + " -p " + InputBin + " -m 1"
+        params = params + " --debug"
+        params = params + " -l " + os.path.join(TempOutDir, "GenFmpImageAuth_Log.log")
         if(DevPfxFilePath is not None):
             logging.debug("FmpImageAuth is dev signed. Do entire process in 1 step locally.")
 
@@ -81,14 +81,14 @@ class Edk2ToolHelper(PluginManager.IUefiHelperPlugin):
             if not os.path.exists(SignToolPath):
                 raise Exception("Can't find signtool on this machine.")
 
-            cmd = cmd + " --SignTool \"" + SignToolPath + "\""
+            params = params + " --SignTool \"" + SignToolPath + "\""
 
-            cmd = cmd + " --pfxfile " + DevPfxFilePath
+            params = params + " --pfxfile " + DevPfxFilePath
             if( DevPfxPassword is not None):
-                cmd += " --pfxpass " + DevPfxPassword
+                params += " --pfxpass " + DevPfxPassword
             if (Eku is not None):
-                cmd += " --eku " + Eku
-            ret = RunPythonScript(cmd, workingdir=TempOutDir)
+                params += " --eku " + Eku
+            ret = RunPythonScript(cmd, params, workingdir=TempOutDir)
             #delete the temp dir
             shutil.rmtree(TempOutDir, ignore_errors=True)
         else:
@@ -97,8 +97,8 @@ class Edk2ToolHelper(PluginManager.IUefiHelperPlugin):
 
             if(DetachedSignatureFile is None):
                 logging.debug("FmpImageAuth Step1: Make ToBeSigned file for production") 
-                cmd = cmd + " --production"  
-                ret = RunPythonScript(cmd, workingdir=TempOutDir)
+                params = params + " --production"  
+                ret = RunPythonScript(cmd, params, workingdir=TempOutDir)
                 if(ret != 0):
                     raise Exception("GenFmpImageAuth Failed production signing: step 1.  Errorcode %d" % ret)
                 #now we have a file to sign at 
@@ -109,8 +109,8 @@ class Edk2ToolHelper(PluginManager.IUefiHelperPlugin):
             
             else:
                 logging.debug("FmpImageAuth Step3: Final Packaging of production signed")
-                cmd = cmd + " --production -s " + DetachedSignatureFile
-                ret = RunPythonScript(cmd, workingdir=TempOutDir)
+                params = params + " --production -s " + DetachedSignatureFile
+                ret = RunPythonScript(cmd, params, workingdir=TempOutDir)
                 #delete the temp dir
                 shutil.rmtree(TempOutDir, ignore_errors=True)
 
