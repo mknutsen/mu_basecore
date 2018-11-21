@@ -41,7 +41,6 @@ import datetime
 from MuPythonLibrary.UtilityFunctions import *
 
 SCRIPT_PATH = os.path.abspath(os.path.dirname(__file__))
-UefiBaseToolsPath = os.path.dirname(os.path.dirname(SCRIPT_PATH))
 BinToolsPath = os.path.join(os.path.dirname(SCRIPT_PATH), "Bin", "Win32")
 
 os.environ["PATH"] = BinToolsPath + os.pathsep + os.environ["PATH"]
