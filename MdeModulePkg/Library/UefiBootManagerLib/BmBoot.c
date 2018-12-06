@@ -2394,7 +2394,8 @@ BmRegisterBootManagerMenu (
       FreePool (Data);
     }
     if (EFI_ERROR (Status)) {
-      DEBUG ((EFI_D_WARN, "[Bds]BootManagerMenu FFS section can not be found, skip its boot option registration\n"));
+      DEBUG ((EFI_D_WARN, "[Bds]BootManagerMenu FFS section can not be found, skip its boot option registration   %r\n", Status));
+      DEBUG((DEBUG_ERROR, "%g\n", PcdGetPtr(PcdBootManagerMenuFile)));
       return EFI_NOT_FOUND;
     }
 
