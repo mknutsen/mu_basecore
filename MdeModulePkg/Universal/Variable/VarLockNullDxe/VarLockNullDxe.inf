@@ -1,0 +1,41 @@
+## @file
+# Driver to install an empty varlock protocol
+#
+# Copyright (c) 2018, Microsoft Corporation. All rights reserved.<BR>
+#
+#
+##
+
+[Defines]
+  INF_VERSION                    = 0x00010017
+  BASE_NAME                      = VarLockNullDxe
+  FILE_GUID                      = 8B427587-A9FD-4EB8-9A57-476A69BF0B09
+  MODULE_TYPE                    = DXE_DRIVER
+  VERSION_STRING                 = 1.0
+  ENTRY_POINT                    = VarLockNullDxeInit
+
+[Sources]
+  VarLockNullDxe.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+  MdeModulePkg/MdeModulePkg.dec
+
+[LibraryClasses]
+  BaseLib
+  UefiLib
+  DebugLib
+  UefiDriverEntryPoint
+  UefiBootServicesTableLib
+
+[Guids]
+
+[Protocols]
+  gEdkiiVariableLockProtocolGuid         ## PRODUCES
+
+[Pcd]
+
+[FixedPcd]
+
+[Depex]
+  TRUE
