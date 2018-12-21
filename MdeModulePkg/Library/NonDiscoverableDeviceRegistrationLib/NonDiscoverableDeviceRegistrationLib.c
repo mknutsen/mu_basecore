@@ -124,6 +124,7 @@ RegisterNonDiscoverableMmioDevice (
   EFI_ACPI_ADDRESS_SPACE_DESCRIPTOR   *Desc;
   EFI_ACPI_END_TAG_DESCRIPTOR         *End;
   UINTN                               Base, Size;
+  CHAR16                      *TmpStr;
 
   if (Type >= NonDiscoverableDeviceTypeMax ||
       DmaType >= NonDiscoverableDeviceDmaTypeMax ||
@@ -194,14 +195,19 @@ RegisterNonDiscoverableMmioDevice (
   SetDevicePathNodeLength (&DevicePath->Vendor,
     sizeof (*DevicePath) - sizeof (DevicePath->End));
   SetDevicePathEndNode (&DevicePath->End);
+  DEBUG((DEBUG_ERROR, "HERE ABC123\n"));
+  TmpStr = ConvertDevicePathToText ((EFI_DEVICE_PATH_PROTOCOL*) DevicePath,TRUE,TRUE);
+  DEBUG((DEBUG_ERROR, "%s %p\n\n", TmpStr, DevicePath));
 
   Status = gBS->InstallMultipleProtocolInterfaces (Handle,
                   &gEdkiiNonDiscoverableDeviceProtocolGuid, Device,
                   &gEfiDevicePathProtocolGuid, DevicePath,
                   NULL);
   if (EFI_ERROR (Status)) {
+    DEBUG((DEBUG_ERROR, "HERE ABC123 error\n"));
     goto FreeDevicePath;
   }
+  DEBUG((DEBUG_ERROR, "HERE  SUCCEED ABC123\n"));
   return EFI_SUCCESS;
 
 FreeDevicePath:

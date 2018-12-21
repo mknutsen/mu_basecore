@@ -489,6 +489,11 @@ CoreLocateDevicePath (
     // Check if DevicePath is first part of SourcePath
     //
     Size = GetDevicePathSize (TmpDevicePath) - sizeof(EFI_DEVICE_PATH_PROTOCOL);
+    if (Size < 0)
+    {
+      DEBUG((DEBUG_ERROR, "about to debug buffer\n"));
+      DEBUG_BUFFER(DEBUG_ERROR, TmpDevicePath - 32, 64, DEBUG_DM_PRINT_ADDRESS | DEBUG_DM_PRINT_ASCII);
+    }
     ASSERT (Size >= 0);
     if ((Size <= SourceSize) && CompareMem (SourcePath, TmpDevicePath, (UINTN) Size) == 0) {
       //
