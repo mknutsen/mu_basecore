@@ -1730,7 +1730,7 @@ InsertFontPackage (
   FontInfo->FontStyle = FontPkgHdr->FontStyle;
   FontInfo->FontSize  = FontPkgHdr->Cell.Height;
   StrCpyS (FontInfo->FontName, (FontInfoSize - OFFSET_OF(EFI_FONT_INFO,FontName)) / sizeof (CHAR16), FontPkgHdr->FontFamily);
-
+          DEBUG((DEBUG_ERROR, "%a - name %s size 0x%x \n", __FUNCTION__, GlobalFont->FontInfo->FontName, GlobalFont->FontInfo->FontSize));
   if (IsFontInfoExisted (Private, FontInfo, NULL, NULL, NULL)) {
     Status = EFI_UNSUPPORTED;
     goto Error;
@@ -1923,6 +1923,7 @@ RemoveFontPackages (
   HII_GLYPH_INFO                  *GlyphInfo;
   LIST_ENTRY                      *Link;
   HII_GLOBAL_FONT_INFO            *GlobalFont;
+  DEBUG((DEBUG_ERROR, "%a - Enter\n", __FUNCTION__));
 
   ListHead = &PackageList->FontPkgHdr;
 
@@ -1971,6 +1972,7 @@ RemoveFontPackages (
     for (Link = Private->FontInfoList.ForwardLink; Link != &Private->FontInfoList; Link = Link->ForwardLink) {
       GlobalFont = CR (Link, HII_GLOBAL_FONT_INFO, Entry, HII_GLOBAL_FONT_INFO_SIGNATURE);
       if (GlobalFont->FontPackage == Package) {
+        DEBUG((DEBUG_ERROR, "removing! name %s size 0x%x \n", GlobalFont->FontInfo->FontName, GlobalFont->FontInfo->FontSize));
         RemoveEntryList (&GlobalFont->Entry);
         FreePool (GlobalFont->FontInfo);
         FreePool (GlobalFont);
@@ -2961,7 +2963,8 @@ AddPackages (
   UINT32                               OldPackageListLen;
   BOOLEAN                              StringPkgIsAdd;
 
-  //
+DEBUG((DEBUG_ERROR, "%a - enter\n", __FUNCTION__)); 
+  //DEBUG((DEBUG_ERROR, "%a - adding font\n", __FUNCTION__)); 
   // Initialize Variables
   //
   StringPkgIsAdd        = FALSE;
@@ -3079,6 +3082,7 @@ AddPackages (
       StringPkgIsAdd = TRUE;
       break;
     case EFI_HII_PACKAGE_FONTS:
+      DEBUG((DEBUG_ERROR, "%a - adding font\n", __FUNCTION__));
       Status = InsertFontPackage (
                  Private,
                  PackageHdrPtr,
