@@ -1791,7 +1791,7 @@ InsertFontPackage (
   return EFI_SUCCESS;
 
 Error:
-
+  DEBUG((DEBUG_ERROR, "%a - leaving with %r \n", __FUNCTION__, Status));
   if (FontPkgHdr != NULL) {
     FreePool (FontPkgHdr);
   }
@@ -2963,7 +2963,8 @@ AddPackages (
   UINT32                               OldPackageListLen;
   BOOLEAN                              StringPkgIsAdd;
 
-DEBUG((DEBUG_ERROR, "%a - enter\n", __FUNCTION__)); 
+//DEBUG((DEBUG_ERROR, "%a - abc123456 enter\n", __FUNCTION__)); 
+//DEBUG_BUFFER(DEBUG_ERROR, PackageList, 64, DEBUG_DM_PRINT_ADDRESS | DEBUG_DM_PRINT_ASCII);
   //DEBUG((DEBUG_ERROR, "%a - adding font\n", __FUNCTION__)); 
   // Initialize Variables
   //
@@ -2991,8 +2992,9 @@ DEBUG((DEBUG_ERROR, "%a - enter\n", __FUNCTION__));
 
   PackageHdrPtr = (EFI_HII_PACKAGE_HEADER *) ((UINT8 *) PackageList + sizeof (EFI_HII_PACKAGE_LIST_HEADER));
   CopyMem (&PackageHeader, PackageHdrPtr, sizeof (EFI_HII_PACKAGE_HEADER));
-
-  Status = EFI_SUCCESS;
+  DEBUG_BUFFER(DEBUG_ERROR, PackageHdrPtr, 64, DEBUG_DM_PRINT_ADDRESS | DEBUG_DM_PRINT_ASCII);
+ DEBUG((DEBUG_ERROR, "%a - abc123456 enter\n", __FUNCTION__));  
+Status = EFI_SUCCESS;
 
   while (PackageHeader.Type != EFI_HII_PACKAGE_END) {
     switch (PackageHeader.Type) {

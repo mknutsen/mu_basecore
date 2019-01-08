@@ -1173,7 +1173,7 @@ IsFontInfoExisted (
   BOOLEAN                       Matched;
   BOOLEAN                       VagueMatched1;
   BOOLEAN                       VagueMatched2;
-  DEBUG((DEBUG_ERROR, "ABC123 IM HERE %a\n", __FUNCTION__));
+//  DEBUG((DEBUG_ERROR, "ABC123 IM HERE %a\n", __FUNCTION__));
   ASSERT (Private != NULL && Private->Signature == HII_DATABASE_PRIVATE_DATA_SIGNATURE);
   ASSERT (FontInfo != NULL);
 
@@ -1207,8 +1207,9 @@ IsFontInfoExisted (
       DEBUG((DEBUG_ERROR, "%a - handle != null \n", __FUNCTION__));  
     Link = (LIST_ENTRY     *) FontHandle;
   }
-
-  DEBUG((DEBUG_ERROR, "%a - enter forloop link %p final %p\n", __FUNCTION__, Link, &Private->FontInfoList));
+  if (Link == &Private->FontInfoList) {
+    DEBUG((DEBUG_ERROR, "%a - enter forloop link %p final %p\n", __FUNCTION__, Link, &Private->FontInfoList));
+  }
   for (; Link != &Private->FontInfoList; Link = Link->ForwardLink) {
     GlobalFont = CR (Link, HII_GLOBAL_FONT_INFO, Entry, HII_GLOBAL_FONT_INFO_SIGNATURE);
     if (FontInfoMask == NULL) {
@@ -1644,7 +1645,7 @@ HiiStringToImage (
   //
   // Check incoming parameters.
   //
-  DEBUG((DEBUG_ERROR, "ABC123 IM HERE %a\n", __FUNCTION__));
+  //DEBUG((DEBUG_ERROR, "ABC123 IM HERE %a\n", __FUNCTION__));
   if (This == NULL || String == NULL || Blt == NULL) {
     return EFI_INVALID_PARAMETER;
   }
