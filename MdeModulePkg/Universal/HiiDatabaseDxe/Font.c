@@ -1173,7 +1173,6 @@ IsFontInfoExisted (
   BOOLEAN                       Matched;
   BOOLEAN                       VagueMatched1;
   BOOLEAN                       VagueMatched2;
-//  DEBUG((DEBUG_ERROR, "ABC123 IM HERE %a\n", __FUNCTION__));
   ASSERT (Private != NULL && Private->Signature == HII_DATABASE_PRIVATE_DATA_SIGNATURE);
   ASSERT (FontInfo != NULL);
 
@@ -1201,14 +1200,11 @@ IsFontInfoExisted (
   // node by previous call.
   //
   if (FontHandle == NULL) {
-     DEBUG((DEBUG_ERROR, "%a - handle == null \n", __FUNCTION__));  
     Link = Private->FontInfoList.ForwardLink;
   } else {
-      DEBUG((DEBUG_ERROR, "%a - handle != null \n", __FUNCTION__));  
     Link = (LIST_ENTRY     *) FontHandle;
   }
   if (Link == &Private->FontInfoList) {
-    DEBUG((DEBUG_ERROR, "%a - enter forloop link %p final %p\n", __FUNCTION__, Link, &Private->FontInfoList));
   }
   for (; Link != &Private->FontInfoList; Link = Link->ForwardLink) {
     GlobalFont = CR (Link, HII_GLOBAL_FONT_INFO, Entry, HII_GLOBAL_FONT_INFO_SIGNATURE);
@@ -1217,13 +1213,10 @@ IsFontInfoExisted (
         if (GlobalFontInfo != NULL) {
           *GlobalFontInfo = GlobalFont;
         }
-        DEBUG((DEBUG_ERROR, "%a - takintng the easy way out ABC123 \n", __FUNCTION__));
         return TRUE;
       }
-      DEBUG((DEBUG_ERROR, "%a - dying in limbo\n", __FUNCTION__));
     } else {
 //      if (GlobalFont->FontInfo->FontSize >= 40) {
-        DEBUG((DEBUG_ERROR, "%a ABC123 name %s size 0x%x \n", __FUNCTION__, GlobalFont->FontInfo->FontName, GlobalFont->FontInfo->FontSize));
   //    }
       //
       // Check which options could be used to make a match.
@@ -1645,7 +1638,6 @@ HiiStringToImage (
   //
   // Check incoming parameters.
   //
-  //DEBUG((DEBUG_ERROR, "ABC123 IM HERE %a\n", __FUNCTION__));
   if (This == NULL || String == NULL || Blt == NULL) {
     return EFI_INVALID_PARAMETER;
   }
@@ -1713,6 +1705,11 @@ HiiStringToImage (
   SystemDefault = NULL;
   StringIn      = NULL;
 
+  if (StringInfo != NULL)
+  {
+    DEBUG((DEBUG_ERROR, "%a - Font size %x\n", __FUNCTION__, StringInfo->FontInfo.FontSize));
+  }
+
   //
   // Calculate the string output information, including specified color and font .
   // If StringInfo does not points to system font info, it must indicate an existing
@@ -1724,6 +1721,7 @@ HiiStringToImage (
   SysFontFlag   = IsSystemFontInfo (Private, (EFI_FONT_DISPLAY_INFO *) StringInfo, &SystemDefault, NULL);
 
   if (SysFontFlag) {
+    DEBUG((DEBUG_ERROR, "%a - sysfontflag 1724\n"));
     ASSERT (SystemDefault != NULL);
     FontInfo   = NULL;
     Height     = SystemDefault->FontInfo.FontSize;
@@ -1736,10 +1734,9 @@ HiiStringToImage (
     //  StringInfo must not be NULL if it is not system info.
     //
     ASSERT (StringInfo != NULL);
-    DEBUG((DEBUG_ERROR, "%a - calling HiiGetFontInfo \n", __FUNCTION__)); 
     Status = HiiGetFontInfo (This, &FontHandle, (EFI_FONT_DISPLAY_INFO *) StringInfo, &StringInfoOut, NULL);
-    DEBUG((DEBUG_ERROR, "%a - Tried to get font info %r\n", __FUNCTION__, Status));
     if (Status == EFI_NOT_FOUND) {
+      DEBUG((DEBUG_ERROR, "%a - not found 1739\n", __FUNCTION__));
       //
       // The specified EFI_FONT_DISPLAY_INFO does not exist in current database.
       // Use the system font instead. Still use the color specified by StringInfo.
@@ -1759,6 +1756,7 @@ HiiStringToImage (
       Foreground = StringInfoOut->ForegroundColor;
       Background = StringInfoOut->BackgroundColor;
     } else {
+      DEBUG((DEBUG_ERROR, "%a - exiting 1759 %r\n", __FUNCTION__, Status));
       goto Exit;
     }
   }
@@ -2878,7 +2876,6 @@ HiiGetFontInfo (
   ASSERT (FontInfo != NULL);
   FontInfo->FontSize  = InfoOut.FontInfo.FontSize;
   FontInfo->FontStyle = InfoOut.FontInfo.FontStyle;
-  DEBUG((DEBUG_ERROR, "%a - calling IsFontInfoExisted\n", __FUNCTION__));
   if (IsFontInfoExisted (Private, FontInfo, &InfoOut.FontInfoMask, LocalFontHandle, &GlobalFont)) {
     //
     // Test to guarantee all characters are available in the found font.

@@ -2992,11 +2992,13 @@ AddPackages (
 
   PackageHdrPtr = (EFI_HII_PACKAGE_HEADER *) ((UINT8 *) PackageList + sizeof (EFI_HII_PACKAGE_LIST_HEADER));
   CopyMem (&PackageHeader, PackageHdrPtr, sizeof (EFI_HII_PACKAGE_HEADER));
-  DEBUG_BUFFER(DEBUG_ERROR, PackageHdrPtr, 64, DEBUG_DM_PRINT_ADDRESS | DEBUG_DM_PRINT_ASCII);
- DEBUG((DEBUG_ERROR, "%a - abc123456 enter\n", __FUNCTION__));  
+DEBUG_BUFFER(DEBUG_ERROR, PackageHdrPtr, sizeof (EFI_HII_PACKAGE_HEADER), DEBUG_DM_PRINT_ADDRESS | DEBUG_DM_PRINT_ASCII);
+DEBUG((DEBUG_ERROR, "%a - abc123456 2996\n", __FUNCTION__));  
 Status = EFI_SUCCESS;
 
   while (PackageHeader.Type != EFI_HII_PACKAGE_END) {
+// debug print PackageHeader.Length PackageHeader.Type
+DEBUG((DEBUG_ERROR, "%a - Length %x | Type %x", __FUNCTION__, PackageHeader.Length, PackageHeader.Type));
     switch (PackageHeader.Type) {
     case EFI_HII_PACKAGE_TYPE_GUID:
       Status = InsertGuidPackage (
@@ -3084,7 +3086,9 @@ Status = EFI_SUCCESS;
       StringPkgIsAdd = TRUE;
       break;
     case EFI_HII_PACKAGE_FONTS:
-      DEBUG((DEBUG_ERROR, "%a - adding font\n", __FUNCTION__));
+// debug buffer PackageHdrPtr min(128, package header length)
+      DEBUG((DEBUG_ERROR, "%a - adding font abc123\n", __FUNCTION__));
+      DEBUG_BUFFER(DEBUG_ERROR, PackageHdrPtr, MIN(128, PackageHeader.Length), DEBUG_DM_PRINT_ADDRESS | DEBUG_DM_PRINT_ASCII);
       Status = InsertFontPackage (
                  Private,
                  PackageHdrPtr,
@@ -3150,6 +3154,8 @@ Status = EFI_SUCCESS;
     default:
       break;
     }
+// debug print i got here error code
+      DEBUG((DEBUG_ERROR, "%a - out of switch - %r\n", __FUNCTION__, Status));
 
     if (EFI_ERROR (Status)) {
       return Status;

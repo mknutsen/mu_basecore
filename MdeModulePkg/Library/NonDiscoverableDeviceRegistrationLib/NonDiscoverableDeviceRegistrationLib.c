@@ -195,7 +195,7 @@ RegisterNonDiscoverableMmioDevice (
   SetDevicePathNodeLength (&DevicePath->Vendor,
     sizeof (*DevicePath) - sizeof (DevicePath->End));
   SetDevicePathEndNode (&DevicePath->End);
-  DEBUG((DEBUG_ERROR, "HERE ABC123\n"));
+  // DEBUG((DEBUG_ERROR, "HERE ABC123\n"));
   TmpStr = ConvertDevicePathToText ((EFI_DEVICE_PATH_PROTOCOL*) DevicePath,TRUE,TRUE);
   DEBUG((DEBUG_ERROR, "%s %p\n\n", TmpStr, DevicePath));
 
@@ -204,10 +204,10 @@ RegisterNonDiscoverableMmioDevice (
                   &gEfiDevicePathProtocolGuid, DevicePath,
                   NULL);
   if (EFI_ERROR (Status)) {
-    DEBUG((DEBUG_ERROR, "HERE ABC123 error\n"));
+    // DEBUG((DEBUG_ERROR, "HERE ABC123 error\n"));
     goto FreeDevicePath;
   }
-  DEBUG((DEBUG_ERROR, "HERE  SUCCEED ABC123\n"));
+  // DEBUG((DEBUG_ERROR, "HERE  SUCCEED ABC123\n"));
   return EFI_SUCCESS;
 
 FreeDevicePath:
