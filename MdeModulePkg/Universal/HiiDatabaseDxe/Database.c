@@ -2998,7 +2998,7 @@ Status = EFI_SUCCESS;
 
   while (PackageHeader.Type != EFI_HII_PACKAGE_END) {
 // debug print PackageHeader.Length PackageHeader.Type
-DEBUG((DEBUG_ERROR, "%a - Length %x | Type %x", __FUNCTION__, PackageHeader.Length, PackageHeader.Type));
+DEBUG((DEBUG_ERROR, "%a - Length %x | Type %x\n", __FUNCTION__, PackageHeader.Length, PackageHeader.Type));
     switch (PackageHeader.Type) {
     case EFI_HII_PACKAGE_TYPE_GUID:
       Status = InsertGuidPackage (
