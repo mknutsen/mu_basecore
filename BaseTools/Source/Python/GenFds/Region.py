@@ -15,11 +15,11 @@
 ##
 # Import Modules
 #
-from __future__ import absolute_import
 from struct import *
 from .GenFdsGlobalVariable import GenFdsGlobalVariable
 from io import BytesIO
 import string
+from CommonDataClass.FdfClass import RegionClassObject
 import Common.LongFilePathOs as os
 from stat import *
 from Common import EdkLogger
@@ -31,20 +31,15 @@ from Common.DataType import BINARY_FILE_TYPE_FV
 ## generate Region
 #
 #
-class Region(object):
+class Region(RegionClassObject):
 
     ## The constructor
     #
     #   @param  self        The object pointer
     #
     def __init__(self):
-        self.Offset = None       # The begin position of the Region
-        self.Size = None         # The Size of the Region
-        self.PcdOffset = None
-        self.PcdSize = None
-        self.SetVarDict = {}
-        self.RegionType = None
-        self.RegionDataList = []
+        RegionClassObject.__init__(self)
+
 
     ## PadBuffer()
     #

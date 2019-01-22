@@ -14,7 +14,6 @@
 ##
 # Import Modules
 #
-from __future__ import absolute_import
 import re
 from . import DataType
 import Common.LongFilePathOs as os
@@ -613,7 +612,7 @@ def PreCheck(FileName, FileContent, SupSectionTag):
         #
         # Regenerate FileContent
         #
-        NewFileContent = NewFileContent + Line + '\r\n'
+        NewFileContent = NewFileContent + Line + '\n'
 
     if IsFailed:
        EdkLogger.error("Parser", FORMAT_INVALID, Line=LineNo, File=FileName, RaiseError=EdkLogger.IsRaiseError)

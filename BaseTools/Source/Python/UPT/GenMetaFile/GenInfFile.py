@@ -234,22 +234,22 @@ def GenModuleUNIEncodeFile(ModuleObject, UniFileHeader='', Encoding=DT.TAB_ENCOD
     if not os.path.exists(os.path.dirname(ModuleObject.GetFullPath())):
         os.makedirs(os.path.dirname(ModuleObject.GetFullPath()))
 
-    Content = UniFileHeader + '\r\n'
-    Content += '\r\n'
+    Content = UniFileHeader + '\n'
+    Content += '\n'
 
-    Content += FormatUniEntry('#string ' + DT.TAB_INF_ABSTRACT, ModuleObject.GetAbstract(), ContainerFile) + '\r\n'
+    Content += FormatUniEntry('#string ' + DT.TAB_INF_ABSTRACT, ModuleObject.GetAbstract(), ContainerFile) + '\n'
 
     Content += FormatUniEntry('#string ' + DT.TAB_INF_DESCRIPTION, ModuleObject.GetDescription(), ContainerFile) \
-            + '\r\n'
+            + '\n'
 
     BinaryAbstractString = FormatUniEntry('#string ' + DT.TAB_INF_BINARY_ABSTRACT, BinaryAbstract, ContainerFile)
     if BinaryAbstractString:
-        Content += BinaryAbstractString + '\r\n'
+        Content += BinaryAbstractString + '\n'
 
     BinaryDescriptionString = FormatUniEntry('#string ' + DT.TAB_INF_BINARY_DESCRIPTION, BinaryDescription, \
                                              ContainerFile)
     if BinaryDescriptionString:
-        Content += BinaryDescriptionString + '\r\n'
+        Content += BinaryDescriptionString + '\n'
 
     if not os.path.exists(ContainerFile):
         File = codecs.open(ContainerFile, 'wb', Encoding)

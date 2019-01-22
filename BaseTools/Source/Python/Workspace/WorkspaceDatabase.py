@@ -15,7 +15,6 @@
 ##
 # Import Modules
 #
-from __future__ import absolute_import
 from Common.StringUtils import *
 from Common.DataType import *
 from Common.Misc import *
@@ -153,6 +152,7 @@ class WorkspaceDatabase(object):
     #
     def __init__(self):
         self.DB = dict()
+        self.Conn = sqlite3.connect(DbPath, isolation_level='DEFERRED')
         # create table for internal uses
         self.TblDataModel = DataClass.MODEL_LIST
         self.TblFile = []

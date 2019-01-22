@@ -206,7 +206,7 @@ class InfSectionParser(InfDefinSectionParser,
         if FilePath in cls.MetaFiles:
             return cls.MetaFiles[FilePath]
         else:
-            ParserObject = super(InfSectionParser, cls).__new__(cls)
+            ParserObject = super().__new__(cls)
             cls.MetaFiles[FilePath] = ParserObject
             return ParserObject
 
