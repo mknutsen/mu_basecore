@@ -204,7 +204,7 @@ class AutoGen(object):
         return RetVal
 
     def __init__ (self, Workspace, MetaFile, Target, Toolchain, Arch, *args, **kwargs):
-        super(AutoGen, self).__init__(self, Workspace, MetaFile, Target, Toolchain, Arch, *args, **kwargs)
+        super().__init__()          ## MU_CHANGE - Python3
 
     ## hash() operator
     #

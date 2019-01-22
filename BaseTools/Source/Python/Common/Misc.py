@@ -26,8 +26,8 @@ import array
 import shutil
 from random import sample
 from struct import pack
-from UserDict import IterableUserDict
-from UserList import UserList
+from collections import UserDict as IterableUserDict    ## MU_CHANGE - Python3
+##from UserList import UserList                         ## MU_CHANGE - Python3
 
 from Common import EdkLogger as EdkLogger
 from Common import GlobalData as GlobalData
@@ -478,9 +478,14 @@ def SaveFileOnChange(File, Content, IsBinaryFile=True):
             EdkLogger.error(None, PERMISSION_FAILURE, "Do not have write permission on directory %s" % DirName)
 
     try:
-        Fd = open(File, "wb")
-        Fd.write(Content)
-        Fd.close()
+        ## MU_CHANGE [BEGIN] - Python3
+        if isinstance(Content, bytes):
+            with open(File, "wb") as Fd:
+                Fd.write(Content)
+        else:
+            with open(File, "w") as Fd:
+                Fd.write(Content)
+        ## MU_CHANGE [END] - Python3
     except IOError as X:
         EdkLogger.error(None, FILE_CREATE_FAILURE, ExtraData='IOError %s' % X)
 
@@ -1631,7 +1636,7 @@ def SplitOption(OptionString):
 def CommonPath(PathList):
     P1 = min(PathList).split(os.path.sep)
     P2 = max(PathList).split(os.path.sep)
-    for Index in xrange(min(len(P1), len(P2))):
+    for Index in range(min(len(P1), len(P2))):    ## MU_CHANGE - Python3
         if P1[Index] != P2[Index]:
             return os.path.sep.join(P1[:Index])
     return os.path.sep.join(P1)

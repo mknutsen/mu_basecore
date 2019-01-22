@@ -162,7 +162,7 @@ class IncludeFileProfile:
         self.FileName = FileName
         self.FileLinesList = []
         try:
-            with open(FileName, "rb", 0) as fsock:
+            with open(FileName, "r") as fsock:          ## MU_CHANGE - Python3
                 self.FileLinesList = fsock.readlines()
                 for index, line in enumerate(self.FileLinesList):
                     if not line.endswith(TAB_LINE_BREAK):
@@ -216,7 +216,7 @@ class FileProfile:
     def __init__(self, FileName):
         self.FileLinesList = []
         try:
-            with open(FileName, "rb", 0) as fsock:
+            with open(FileName, "r") as fsock:          ## MU_CHANGE - Python3
                 self.FileLinesList = fsock.readlines()
 
         except:
@@ -1573,7 +1573,7 @@ class FdfParser:
                 self.SetPcdLocalation(pcdPair)
                 FileLineTuple = GetRealFileLine(self.FileName, self.CurrentLineNumber)
                 self.Profile.PcdFileLineDict[pcdPair] = FileLineTuple
-            Obj.Size = long(Size, 0)
+            Obj.Size = int(Size, 0)                 ## MU_CHANGE - Python3
             return True
 
         if self._IsKeyword("ErasePolarity"):
@@ -1608,7 +1608,7 @@ class FdfParser:
             if not self._GetNextDecimalNumber() and not self._GetNextHexNumber():
                 raise Warning.Expected("address", self.FileName, self.CurrentLineNumber)
 
-            BsAddress = long(self._Token, 0)
+            BsAddress = int(self._Token, 0)         ## MU_CHANGE - Python3
             Obj.BsBaseAddress = BsAddress
 
         if self._IsKeyword("RtBaseAddress"):
@@ -1618,7 +1618,7 @@ class FdfParser:
             if not self._GetNextDecimalNumber() and not self._GetNextHexNumber():
                 raise Warning.Expected("address", self.FileName, self.CurrentLineNumber)
 
-            RtAddress = long(self._Token, 0)
+            RtAddress = int(self._Token, 0)         ## MU_CHANGE - Python3
             Obj.RtBaseAddress = RtAddress
 
     ## _GetBlockStatements() method
@@ -1666,7 +1666,7 @@ class FdfParser:
             self.SetPcdLocalation(PcdPair)
             FileLineTuple = GetRealFileLine(self.FileName, self.CurrentLineNumber)
             self.Profile.PcdFileLineDict[PcdPair] = FileLineTuple
-        BlockSize = long(BlockSize, 0)
+        BlockSize = int(BlockSize, 0)           ## MU_CHANGE - Python3
 
         BlockNumber = None
         if self._IsKeyword("NumBlocks"):
@@ -1676,7 +1676,7 @@ class FdfParser:
             if not self._GetNextDecimalNumber() and not self._GetNextHexNumber():
                 raise Warning.Expected("block numbers", self.FileName, self.CurrentLineNumber)
 
-            BlockNumber = long(self._Token, 0)
+            BlockNumber = int(self._Token, 0)       ## MU_CHANGE - Python3
 
         Obj.BlockSizeList.append((BlockSize, BlockNumber, BlockSizePcd))
         return True
@@ -1785,7 +1785,7 @@ class FdfParser:
             Expr += CurCh
             self._GetOneChar()
         try:
-            return long(
+            return int(         ## MU_CHANGE - Python3
                 ValueExpression(Expr,
                                 self._CollectMacroPcd()
                                 )(True), 0)
@@ -1833,7 +1833,7 @@ class FdfParser:
                            RegionOffsetPcdPattern.match(self._CurrentLine()[self.CurrentOffsetWithinLine:]))
             if IsRegionPcd:
                 RegionObj.PcdOffset = self._GetNextPcdSettings()
-                self.Profile.PcdDict[RegionObj.PcdOffset] = "0x%08X" % (RegionObj.Offset + long(theFd.BaseAddress, 0))
+                self.Profile.PcdDict[RegionObj.PcdOffset] = "0x%08X" % (RegionObj.Offset + int(theFd.BaseAddress, 0))     ## MU_CHANGE - Python3
                 self.SetPcdLocalation(RegionObj.PcdOffset)
                 self._PcdDict['%s.%s' % (RegionObj.PcdOffset[1], RegionObj.PcdOffset[0])] = "0x%x" % RegionObj.Offset
                 FileLineTuple = GetRealFileLine(self.FileName, self.CurrentLineNumber)
