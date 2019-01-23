@@ -28,9 +28,7 @@ APPLICATIONS = \
   Split \
   TianoCompress \
   VolInfo \
-  DevicePath \
-  GenFmpCap \
-  GenMsPayloadHeader
+  DevicePath
 
 all: libs apps install
 
