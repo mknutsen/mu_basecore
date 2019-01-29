@@ -1,5 +1,5 @@
 {
-    "name": "Mu-Basetools-Win32",
+    "name": "Mu-Basetools-Linux-GCC",
     "author_string": "ProjectMu, TianoCore",
     "server_url": "https://api.nuget.org/v3/index.json",
     "project_url": "https://aka.ms/projectmu",
