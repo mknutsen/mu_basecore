@@ -14,14 +14,32 @@ workspace:
 steps:
 - checkout: self
   clean: true
-  
+
 - task: UsePythonVersion@0
   inputs:
     versionSpec: '3.7.x'
     architecture: 'x64'
 
-- script: . gccinstall.sh
-  displayName: 'Install GCC'
+- script: make -C BaseTools
+  displayName: Making Base Tools
+
+-script: wget https://releases.linaro.org/components/toolchain/binaries/7.2-2017.11/aarch64-linux-gnu/gcc-linaro-7.2.1-2017.11-x86_64_aarch64-linux-gnu.tar.xz
+  displayName: Downloading gcc-linaro-7.2.1-2017.11-x86_64_aarch64
+
+-script: tar -xf gcc-linaro-7.2.1-2017.11-x86_64_aarch64-linux-gnu.tar.xz gcc-linaro-7.2.1-2017.11-x86_64_aarch64-linux-gnu/
+  displayName: Unpacking gcc-linaro-7.2.1-2017.11-x86_64_aarch64
+
+-script: export GCC5_AARCH64_PREFIX=$PWD/gcc-linaro-7.2.1-2017.11-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-
+  displayName: Setting GCC5_AARCH64_PREFIX
+
+-script: wget https://releases.linaro.org/components/toolchain/binaries/6.4-2017.11/arm-linux-gnueabihf/gcc-linaro-6.4.1-2017.11-x86_64_arm-linux-gnueabihf.tar.xz
+  displayName: Downloading gcc-linaro-6.4.1-2017.11-x86_64_arm
+
+-script: tar -xf gcc-linaro-6.4.1-2017.11-x86_64_arm-linux-gnueabihf.tar.xz
+  displayName: Unpacking gcc-linaro-6.4.1-2017.11-x86_64_arm
+
+-script: export GCC5_ARM_PREFIX=$PWD/gcc-linaro-6.4.1-2017.11-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-
+  displayName: Setting GCC5_ARM_PREFIX
 
 - script: pip3 install -r requirements.txt --upgrade
   displayName: 'Install/Upgrade mu_build'
@@ -40,14 +58,14 @@ steps:
   condition: succeededOrFailed()
   inputs:
     testResultsFormat: 'JUnit' # Options: JUnit, NUnit, VSTest, xUnit
-    testResultsFiles: 'Build/BuildLogs/TestSuites.xml' 
+    testResultsFiles: 'Build/BuildLogs/TestSuites.xml'
     #searchFolder: '$(System.DefaultWorkingDirectory)' # Optional
     mergeTestResults: true # Optional
     #testRunTitle: # Optional
     #buildPlatform: # Optional
     #buildConfiguration: # Optional
     publishRunAttachments: true # Optional
-   
+
 
 # Publish Build Artifacts
 # Publish build artifacts to Azure Artifacts/TFS or a file share
@@ -56,8 +74,8 @@ steps:
   continueOnError: true
   condition: succeededOrFailed()
   inputs:
-    pathtoPublish: 'Build/BuildLogs' 
-    artifactName: 'Build Logs $(Build.Pkgs)' 
+    pathtoPublish: 'Build/BuildLogs'
+    artifactName: 'Build Logs $(Build.Pkgs)'
     #publishLocation: 'Container' # Options: container, filePath
     #targetPath: # Required when publishLocation == FilePath
     #parallel: false # Optional
