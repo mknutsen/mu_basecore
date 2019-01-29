@@ -42,6 +42,6 @@ Nuget version is AA.BB.CC
 6. Open cmd prompt in the NugetPublishing dir
 7. Pack and push
   ```cmd
-  NugetProducerSupport.py --Operation PackAndPush --ConfigFilePath Mu-Basetools-Linux-GCC.config.json --Version <nuget version here> --InputFolderPath <path to newly created folder here>  --ApiKey <your key here
+  NugetProducerSupport.py --Operation PackAndPush --ConfigFilePath Mu-Basetools-Linux-GCC.config.json --Version <nuget version here> --InputFolderPath <path to newly created folder here>  --ApiKey <your key here>
   ```
 
