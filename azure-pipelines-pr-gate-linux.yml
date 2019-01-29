@@ -23,22 +23,22 @@ steps:
 - script: make -C BaseTools
   displayName: Making Base Tools
 
--script: wget https://releases.linaro.org/components/toolchain/binaries/7.2-2017.11/aarch64-linux-gnu/gcc-linaro-7.2.1-2017.11-x86_64_aarch64-linux-gnu.tar.xz
+- script: wget https://releases.linaro.org/components/toolchain/binaries/7.2-2017.11/aarch64-linux-gnu/gcc-linaro-7.2.1-2017.11-x86_64_aarch64-linux-gnu.tar.xz
   displayName: Downloading gcc-linaro-7.2.1-2017.11-x86_64_aarch64
 
--script: tar -xf gcc-linaro-7.2.1-2017.11-x86_64_aarch64-linux-gnu.tar.xz gcc-linaro-7.2.1-2017.11-x86_64_aarch64-linux-gnu/
+- script: tar -xf gcc-linaro-7.2.1-2017.11-x86_64_aarch64-linux-gnu.tar.xz gcc-linaro-7.2.1-2017.11-x86_64_aarch64-linux-gnu/
   displayName: Unpacking gcc-linaro-7.2.1-2017.11-x86_64_aarch64
 
--script: export GCC5_AARCH64_PREFIX=$PWD/gcc-linaro-7.2.1-2017.11-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-
+- script: export GCC5_AARCH64_PREFIX=$PWD/gcc-linaro-7.2.1-2017.11-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-
   displayName: Setting GCC5_AARCH64_PREFIX
 
--script: wget https://releases.linaro.org/components/toolchain/binaries/6.4-2017.11/arm-linux-gnueabihf/gcc-linaro-6.4.1-2017.11-x86_64_arm-linux-gnueabihf.tar.xz
+- script: wget https://releases.linaro.org/components/toolchain/binaries/6.4-2017.11/arm-linux-gnueabihf/gcc-linaro-6.4.1-2017.11-x86_64_arm-linux-gnueabihf.tar.xz
   displayName: Downloading gcc-linaro-6.4.1-2017.11-x86_64_arm
 
--script: tar -xf gcc-linaro-6.4.1-2017.11-x86_64_arm-linux-gnueabihf.tar.xz
+- script: tar -xf gcc-linaro-6.4.1-2017.11-x86_64_arm-linux-gnueabihf.tar.xz
   displayName: Unpacking gcc-linaro-6.4.1-2017.11-x86_64_arm
 
--script: export GCC5_ARM_PREFIX=$PWD/gcc-linaro-6.4.1-2017.11-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-
+- script: export GCC5_ARM_PREFIX=$PWD/gcc-linaro-6.4.1-2017.11-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-
   displayName: Setting GCC5_ARM_PREFIX
 
 - script: pip3 install -r requirements.txt --upgrade
