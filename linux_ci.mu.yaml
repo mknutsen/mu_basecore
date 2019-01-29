@@ -38,7 +38,8 @@
         "UefiCpuPkg"
     ],
     "ArchSupported": [
-        "AARCH64"
+        "AARCH64",
+        "ARM"
     ],
     "Targets": [
         "DEBUG",
