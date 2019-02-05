@@ -20,8 +20,8 @@ steps:
     versionSpec: '3.7.x'
     architecture: 'x64'
 
-- script: make -C BaseTools
-  displayName: Making Base Tools
+# - script: make -C BaseTools
+#   displayName: Making Base Tools
 
 - script: wget https://releases.linaro.org/components/toolchain/binaries/7.2-2017.11/aarch64-linux-gnu/gcc-linaro-7.2.1-2017.11-x86_64_aarch64-linux-gnu.tar.xz
   displayName: Downloading gcc-linaro-7.2.1-2017.11-x86_64_aarch64
