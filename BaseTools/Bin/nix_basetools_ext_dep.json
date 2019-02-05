@@ -1,5 +1,5 @@
 {
-  "scope": "global-win",
+  "scope": "global-nix",
   "type": "nuget",
   "name": "Mu-Basetools-Linux-GCC",
   "source": "https://api.nuget.org/v3/index.json",
