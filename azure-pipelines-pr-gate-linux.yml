@@ -8,6 +8,9 @@ strategy:
     TARGET_SECURITY_CPU:
       Build.Pkgs: 'SecurityPkg UefiCpuPkg'
 
+variables:
+  GCC5_AARCH64_PREFIX: $PWD/gcc-linaro-7.2.1-2017.11-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-
+
 workspace:
   clean: all
 
@@ -37,6 +40,9 @@ steps:
 
 - script: ls -la $GCC5_AARCH64_PREFIX
   displayName: ls -la $GCC5_AARCH64_PREFIX
+
+- script: ls -la CWD
+  displayName: ls -la $PWD
 
 - script: wget https://releases.linaro.org/components/toolchain/binaries/6.4-2017.11/arm-linux-gnueabihf/gcc-linaro-6.4.1-2017.11-x86_64_arm-linux-gnueabihf.tar.xz
   displayName: Downloading gcc-linaro-6.4.1-2017.11-x86_64_arm
