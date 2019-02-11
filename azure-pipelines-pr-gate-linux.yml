@@ -46,7 +46,7 @@ steps:
   displayName: Build and Test $(Build.Pkgs)
   inputs:
     filename: mu_build
-    arguments: -c linux_ci.mu.yaml --force-git TOOL_CHAIN_TAG=GCC5 -p $(Build.Pkgs)
+    arguments: -c ci.mu.yaml --force-git TOOL_CHAIN_TAG=GCC5 -p $(Build.Pkgs)
 
 # Publish Test Results to Azure Pipelines/TFS
 - task: PublishTestResults@2
