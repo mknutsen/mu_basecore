@@ -1,9 +1,0 @@
-{
-  "scope": "global-nix",
-  "type": "nuget",
-  "name": "Mu-Basetools-Linux-GCC",
-  "source": "https://api.nuget.org/v3/index.json",
-  "version": "2018.8.0",
-  "flags": ["set_shell_var", "set_path"],
-  "var_name": "EDK_TOOLS_PATH"
-}
