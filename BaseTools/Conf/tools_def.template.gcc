@@ -14,6 +14,29 @@
 #  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #
 
+
+#
+#Increase this version tag any time you want user to get warning about updating this file in the Conf dir.  By default it does not do update existing conf dirs. 
+#
+#
+# 1.06 - Updated VS2015 64 dlink flags to set to 4kb aligned for MAT support.  This matches changes needed for vs2013 made earlier
+# 1.07 - Updated VS2015 & VS2013 Build flags to remove /GS- option for DEBUG builds, thus enabling StackCookies
+#
+# 1.08 - Updated Iasl and Link16.exe path
+# 1.09 - ARM/ARM64 tools update
+# 1.10 - VS2017 + Gw
+# 1.13 - Updated SDK Ver with version currently installed from microsoft website
+# 1.14 - Created VSLATESTx86 for supporting latest VS version
+# 1.15 - Added ARM,ARM64 proper for prerelease of VS2017 tools.
+# 1.16 - Changed /DEBUG to FULL mode for VS2017+
+# 1.17 - Asl compilers should be on the path
+# 1.18 - Remove VS2013 support
+# 1.19 - RC.exe from Windows 10 Kit
+# 2.00 - Creating tools_def.template.gcc file specifically for building with GCC
+
+#!VERSION=2.00
+
+
 IDENTIFIER = Default TOOL_CHAIN_CONF
 
 DEFINE GCC49_IA32_PREFIX       = ENV(GCC49_BIN)
