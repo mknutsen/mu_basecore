@@ -6,12 +6,17 @@ Tool to help create and publish nuget packages for Project Mu resources
 
 See NugetPublishing.py -h  
 
-## OPTIONAL: Separation by OS/bit/architecture
+## OPTIONAL: host_specific folders
+
+The possible different setups for the host are:
+OS: Linux, Windows, Java
+Architecture: x86 or ARM
+Highest Order Bit: 32 or 64
 
 Before the path to the NuGet package contents is published, the Python environment can look inside at several subfolders and decide which one to use based on the Host OS, highest order bit available, and the architecture of the processor. To do so, add "separated" to your flags like so:
 
 ```
-"flags": ["separated"],
+"flags": ["host_specific"],
 ```
 
 If this flag is present, the environment will make a list possible subfolders that would be acceptable for the host machine.
@@ -39,17 +44,13 @@ For example
 
 ## Example: Creating new config file for first use
 
-```yaml
-{
-    "name": "Name of your package",
-    "author_string": "Let users know who to be mad at when it doesn't work",
-    "server_url": "https://api.nuget.org/v3/index.json",  # This is just URL of the NuGet server you are using, not the URL of the project itself
-    "project_url": "Link to a website that provides more information about the project",
-    "license_url": "Link to a license describing the ownership of the contents",
-    "description_string": "This is where you describe what your NuGet feed does",
-    "copyright_string": "Copyright 2019"
-}
+This will create the config files and place them in the current directory:
+
+```cmd
+NugetPublishing.py --Operation New --Name iasl --Author ProjectMu --ConfigFileFolderPath . --Description "Description of item." --FeedUrl https://api.nuget.org/v3/index.json --ProjectUrl http://aka.ms/projectmu --LicenseType BSD2
 ```
+
+For help run: `NugetPublishing.py --Operation New --help`
 
 ## Example: Publishing new version of tool
 
