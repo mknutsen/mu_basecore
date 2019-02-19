@@ -1,6 +1,6 @@
-# Mu BaseTools Win32 Notes
+# Mu BaseTools Notes
 
-This is a set of compiled tools for Edk2 development on Windows.  This set has both the standard Edk2 tools as well as additional tools created for Project Mu.  
+This is a set of compiled tools for Edk2 development on x86 for Windows and Linux.  This set has both the standard Edk2 tools as well as additional tools created for Project Mu.  
 
 ## Where
 
