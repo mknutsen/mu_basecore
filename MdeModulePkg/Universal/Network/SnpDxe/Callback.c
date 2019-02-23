@@ -121,7 +121,9 @@ SnpUndi32CallbackMemio (
 
   switch (ReadOrWrite) {
   case PXE_IO_READ:
-    Snp->PciIo->Io.Read (
+    ASSERT(Snp->IoBarIndex < PCI_MAX_BAR); //mu_change - check the bar is valid
+    if(Snp->IoBarIndex < PCI_MAX_BAR) { //mu_change - check the bar is valid
+      Snp->PciIo->Io.Read (
                      Snp->PciIo,
                      Width,
                      Snp->IoBarIndex,      // BAR 1 (for 32bit regs), IO base address
@@ -129,10 +131,13 @@ SnpUndi32CallbackMemio (
                      1,                    // count
                      (VOID *) (UINTN) BufferPtr
                      );
+    } //mu_change
     break;
 
   case PXE_IO_WRITE:
-    Snp->PciIo->Io.Write (
+    ASSERT(Snp->IoBarIndex < PCI_MAX_BAR); //mu_change - check the bar is valid
+    if(Snp->IoBarIndex < PCI_MAX_BAR) { //mu_change - check the bar is valid
+      Snp->PciIo->Io.Write (
                      Snp->PciIo,
                      Width,
                      Snp->IoBarIndex,      // BAR 1 (for 32bit regs), IO base address
@@ -140,9 +145,12 @@ SnpUndi32CallbackMemio (
                      1,                    // count
                      (VOID *) (UINTN) BufferPtr
                      );
+    } //mu_change
     break;
 
   case PXE_MEM_READ:
+    ASSERT(Snp->MemoryBarIndex < PCI_MAX_BAR); //mu_change - check the bar is valid
+    if(Snp->MemoryBarIndex < PCI_MAX_BAR) { //mu_change - check the bar is valid
     Snp->PciIo->Mem.Read (
                       Snp->PciIo,
                       Width,
@@ -151,9 +159,12 @@ SnpUndi32CallbackMemio (
                       1,                    // count
                       (VOID *) (UINTN) BufferPtr
                       );
+    } //mu_change
     break;
 
   case PXE_MEM_WRITE:
+    ASSERT(Snp->MemoryBarIndex < PCI_MAX_BAR); //mu_change - check the bar is valid
+    if(Snp->MemoryBarIndex < PCI_MAX_BAR) { //mu_change - check the bar is valid
     Snp->PciIo->Mem.Write (
                       Snp->PciIo,
                       Width,
@@ -162,6 +173,7 @@ SnpUndi32CallbackMemio (
                       1,                    // count
                       (VOID *) (UINTN) BufferPtr
                       );
+    } //mu_change
     break;
   }
 
