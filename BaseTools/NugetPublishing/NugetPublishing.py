@@ -283,7 +283,7 @@ class NugetSupport(object):
     def Push(self, nuPackage, apikey):
         if(not os.path.isfile(nuPackage)):
             raise Exception("Invalid file path for NuPkg file")
-        logging.debug("Pushing %s file to server %s" % (nuPackage, self.ConfigData["server_url"]))
+        logging.critical("Pushing %s file to server %s" % (nuPackage, self.ConfigData["server_url"]))
 
         cmd = GetNugetCmd()
         cmd += ["push", nuPackage]
