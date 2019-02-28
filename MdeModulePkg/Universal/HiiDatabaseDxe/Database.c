@@ -1698,6 +1698,8 @@ InsertFontPackage (
   UINT32                    FontInfoSize;
   HII_GLOBAL_FONT_INFO      *GlobalFont;
 
+  DEBUG((DEBUG_ERROR, "insert font package\n"));
+
   if (Private == NULL || PackageHdr == NULL || PackageList == NULL) {
     return EFI_INVALID_PARAMETER;
   }
@@ -1727,10 +1729,11 @@ InsertFontPackage (
     Status = EFI_OUT_OF_RESOURCES;
     goto Error;
   }
+DEBUG((DEBUG_ERROR, "midway\n"));   
   FontInfo->FontStyle = FontPkgHdr->FontStyle;
   FontInfo->FontSize  = FontPkgHdr->Cell.Height;
   StrCpyS (FontInfo->FontName, (FontInfoSize - OFFSET_OF(EFI_FONT_INFO,FontName)) / sizeof (CHAR16), FontPkgHdr->FontFamily);
-          DEBUG((DEBUG_ERROR, "%a - name %s size 0x%x \n", __FUNCTION__, GlobalFont->FontInfo->FontName, GlobalFont->FontInfo->FontSize));
+          DEBUG((DEBUG_ERROR, "%a - name %s size 0x%x \n", __FUNCTION__, FontInfo->FontName, FontInfo->FontSize));
   if (IsFontInfoExisted (Private, FontInfo, NULL, NULL, NULL)) {
     Status = EFI_UNSUPPORTED;
     goto Error;
@@ -1762,7 +1765,7 @@ InsertFontPackage (
   if (EFI_ERROR (Status)) {
     goto Error;
   }
-
+DEBUG((DEBUG_ERROR, "2\n"));   
   //
   // This font package describes an unique EFI_FONT_INFO. Backup it in global
   // font info list.
@@ -1777,7 +1780,7 @@ InsertFontPackage (
   GlobalFont->FontInfoSize = FontInfoSize;
   GlobalFont->FontInfo     = FontInfo;
   InsertTailList (&Private->FontInfoList, &GlobalFont->Entry);
-
+DEBUG((DEBUG_ERROR, "3\n"));   
   //
   // Insert this font package to Font package array
   //
@@ -1787,7 +1790,7 @@ InsertFontPackage (
   if (NotifyType == EFI_HII_DATABASE_NOTIFY_ADD_PACK) {
     PackageList->PackageListHdr.PackageLength += FontPackage->FontPkgHdr->Header.Length;
   }
-
+DEBUG((DEBUG_ERROR, "font package success\n"));   
   return EFI_SUCCESS;
 
 Error:
