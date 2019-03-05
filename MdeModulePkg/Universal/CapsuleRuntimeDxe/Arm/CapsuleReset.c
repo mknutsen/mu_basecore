@@ -63,7 +63,7 @@ CapsuleCacheWriteBack (
 
     if (Desc->Length > 0) {
       WriteBackDataCacheRange ((VOID *)(UINTN)Desc->Union.DataBlock,
-                               Desc->Length
+                               (UINTN)Desc->Length
                                );
       Desc++;
     } else if (Desc->Union.ContinuationPointer > 0) {
