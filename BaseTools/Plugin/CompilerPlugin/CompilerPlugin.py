@@ -27,6 +27,7 @@
 ###
 
 import logging
+from MuPythonLibrary.Uefi.EdkII.Parsers.DscParser import DscParser
 from MuEnvironment.PluginManager import IMuBuildPlugin
 from MuEnvironment.UefiBuild import UefiBuilder
 import os
@@ -63,10 +64,27 @@ class CompilerPlugin(IMuBuildPlugin):
         logging.info("Building {0}".format(AP_Path))
         if AP is None or AP_Path is None or not os.path.isfile(APDSC):
             tc.SetSkipped()
-            tc.LogStdError("1 warning(s) in {0} Compile. DSC not found.".format(packagename))
+            tc.LogStdError("1 warning(s) in {0} Compile. DSC not found.".format(pkgconfig))
             return 0
 
         self._env.SetValue("ACTIVE_PLATFORM", AP_Path, "Set in Compiler Plugin")
+
+        # DSC Parser
+        # self.dp = Dsc()
+        # TODO: modify the DSCObject to be a replacement for the EDK version?
+        # Eventually this will just be a part of the environment we bring up?
+        dp = DscParser()
+        dp.SetBaseAbsPath(Edk2pathObj.WorkspacePath)
+        dp.SetPackagePaths(Edk2pathObj.PackagePathList)
+        dp.ParseFile(AP_Path)
+        SUPPORTED_ARCHITECTURES = dp.LocalVars["SUPPORTED_ARCHITECTURES"].split('|')
+        TARGET_ARCHITECTURES = environment.GetValue("TARGET_ARCH").split(' ')
+
+        if len(set(SUPPORTED_ARCHITECTURES) & set(TARGET_ARCHITECTURES)) == 0:
+            tc.SetSkipped()
+            tc.LogStdError("No supported architecutres to build")
+            return 0
+
         # WorkSpace, PackagesPath, PInManager, PInHelper, args, BuildConfigFile=None):
         uefiBuilder = UefiBuilder(Edk2pathObj.WorkspacePath, os.pathsep.join(Edk2pathObj.PackagePathList), PLM, PLMHelper, args)
         # do all the steps
