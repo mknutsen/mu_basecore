@@ -78,11 +78,11 @@
   OemTpm2InitLib|SecurityPkg/Library/OemTpm2InitLibNull/OemTpm2InitLib.inf               ## MS_CHANGE_?
   SourceDebugEnabledLib|SourceLevelDebugPkg/Library/SourceDebugEnabled/SourceDebugEnabledLib.inf ## MS_CHANGE_?
 
+##MSCHANGE Begin
 [LibraryClasses.ARM]
   NULL|ArmPkg/Library/CompilerIntrinsicsLib/CompilerIntrinsicsLib.inf
 
 [LibraryClasses.X64, LibraryClasses.IA32]
-##MSCHANGE Begin
   ## NOTE: This is a temporary shim to resolve a build error while a more permanent solution is tested!
   Tcg2PreUefiEventLogLib|SecurityPkg/Library/TempPreUefiEventLogLib/TempPreUefiEventLogLib.inf    ## MS_CHANGE_TEMP
 

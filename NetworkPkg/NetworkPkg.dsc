@@ -62,8 +62,8 @@
   FileExplorerLib|MdeModulePkg/Library/FileExplorerLib/FileExplorerLib.inf
   SortLib|MdeModulePkg/Library/UefiSortLib/UefiSortLib.inf
 
-[LibraryClasses.X64, LibraryClasses.IA32]
 ##MSCHANGE Begin
+[LibraryClasses.X64, LibraryClasses.IA32]
 !if $(TARGET) == DEBUG
   #if debug is enabled provide StackCookie support lib so that we can link to /GS exports
   RngLib|MdePkg/Library/BaseRngLib/BaseRngLib.inf
