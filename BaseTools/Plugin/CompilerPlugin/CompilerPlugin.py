@@ -64,7 +64,7 @@ class CompilerPlugin(IMuBuildPlugin):
         logging.info("Building {0}".format(AP_Path))
         if AP is None or AP_Path is None or not os.path.isfile(APDSC):
             tc.SetSkipped()
-            tc.LogStdError("1 warning(s) in {0} Compile. DSC not found.".format(pkgconfig))
+            tc.LogStdError("1 warning(s) in {0} Compile. DSC not found.".format(packagename))
             return 0
 
         self._env.SetValue("ACTIVE_PLATFORM", AP_Path, "Set in Compiler Plugin")
