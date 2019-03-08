@@ -33,6 +33,8 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Library/Tcg2PpVendorLib.h>
 #include <Library/SmmServicesTableLib.h>
 
+#include <Library/MuTelemetryHelperLib.h>
+
 #define     PP_INF_VERSION_1_2    "1.2"
 
 EFI_SMM_VARIABLE_PROTOCOL  *mTcg2PpSmmVariable;

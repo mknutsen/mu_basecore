@@ -40,12 +40,14 @@
   MdePkg/MdePkg.dec
   MdeModulePkg/MdeModulePkg.dec
   SecurityPkg/SecurityPkg.dec
+  MsSurfaceIntelPkg/MsSurfaceIntelPkg.dec   # PALINDROME TEMP - While waiting for MuTelemetryHelperLib to finalize location.
 
 [LibraryClasses]
   DebugLib
   Tcg2PpVendorLib
   SmmServicesTableLib
   BaseMemoryLib
+  MuTelemetryHelperLib
 
 [Guids]
   ## SOMETIMES_PRODUCES ## Variable:L"PhysicalPresence"
