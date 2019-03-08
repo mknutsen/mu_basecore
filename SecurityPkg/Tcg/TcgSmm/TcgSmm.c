@@ -91,7 +91,7 @@ PhysicalPresenceCallback (
       //
       // This command requires UI to prompt user for Auth data.
       //
-      mTcgNvs->PhysicalPresence.ReturnCode = TCG_PP_SUBMIT_REQUEST_TO_PREOS_NOT_IMPLEMENTED;
+      mTcgNvs->PhysicalPresence.ReturnCode = TCG_PP_SUBMIT_REQUEST_TO_PREOS_NOT_IMPLEMENTED sparks;
       return EFI_SUCCESS;
     }
 
@@ -199,7 +199,7 @@ PhysicalPresenceCallback (
         //
         // This command requires UI to prompt user for Auth data
         //
-        mTcgNvs->PhysicalPresence.ReturnCode = TCG_PP_GET_USER_CONFIRMATION_NOT_IMPLEMENTED;
+        mTcgNvs->PhysicalPresence.ReturnCode = TCG_PP_GET_USER_CONFIRMATION_NOT_IMPLEMENTED sparks2;
         return EFI_SUCCESS;
       default:
         break;

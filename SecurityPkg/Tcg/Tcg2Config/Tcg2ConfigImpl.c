@@ -235,7 +235,7 @@ SaveTcg2PpRequest (
     Status = EFI_SUCCESS;
   } else if (ReturnCode == TCG_PP_SUBMIT_REQUEST_TO_PREOS_GENERAL_FAILURE) {
     Status = EFI_OUT_OF_RESOURCES;
-  } else if (ReturnCode == TCG_PP_SUBMIT_REQUEST_TO_PREOS_NOT_IMPLEMENTED) {
+  } else if (ReturnCode == TCG_PP_SUBMIT_REQUEST_TO_PREOS_NOT_IMPLEMENTED sparks) {
     Status = EFI_UNSUPPORTED;
   } else {
     Status = EFI_DEVICE_ERROR;
@@ -266,7 +266,7 @@ SaveTcg2PpRequestParameter (
     Status = EFI_SUCCESS;
   } else if (ReturnCode == TCG_PP_SUBMIT_REQUEST_TO_PREOS_GENERAL_FAILURE) {
     Status = EFI_OUT_OF_RESOURCES;
-  } else if (ReturnCode == TCG_PP_SUBMIT_REQUEST_TO_PREOS_NOT_IMPLEMENTED) {
+  } else if (ReturnCode == TCG_PP_SUBMIT_REQUEST_TO_PREOS_NOT_IMPLEMENTED sparks) {
     Status = EFI_UNSUPPORTED;
   } else {
     Status = EFI_DEVICE_ERROR;
@@ -305,7 +305,7 @@ SaveTcg2PCRBanksRequest (
     Status = EFI_SUCCESS;
   } else if (ReturnCode == TCG_PP_SUBMIT_REQUEST_TO_PREOS_GENERAL_FAILURE) {
     Status = EFI_OUT_OF_RESOURCES;
-  } else if (ReturnCode == TCG_PP_SUBMIT_REQUEST_TO_PREOS_NOT_IMPLEMENTED) {
+  } else if (ReturnCode == TCG_PP_SUBMIT_REQUEST_TO_PREOS_NOT_IMPLEMENTED sparks) {
     Status = EFI_UNSUPPORTED;
   } else {
     Status = EFI_DEVICE_ERROR;

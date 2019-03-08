@@ -1160,6 +1160,7 @@ Done:
       EFI_ERROR_CODE | EFI_ERROR_MINOR,
       (PcdGet32 (PcdStatusCodeSubClassTpmDevice) | EFI_P_EC_INTERFACE_ERROR)
       );
+    LogCriticalEvent((PcdGet32 (PcdStatusCodeSubClassTpmDevice) | EFI_P_EC_INTERFACE_ERROR));
   }
   //
   // Always intall TpmInitializationDonePpi no matter success or fail.

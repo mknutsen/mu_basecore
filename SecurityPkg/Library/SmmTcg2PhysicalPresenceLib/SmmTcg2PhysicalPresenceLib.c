@@ -149,7 +149,7 @@ Tcg2PhysicalPresenceLibSubmitRequestToPreOSFunctionEx (
 
   if ((*OperationRequest > TCG2_PHYSICAL_PRESENCE_NO_ACTION_MAX) &&
       (*OperationRequest < TCG2_PHYSICAL_PRESENCE_STORAGE_MANAGEMENT_BEGIN) ) {
-    ReturnCode = TCG_PP_SUBMIT_REQUEST_TO_PREOS_NOT_IMPLEMENTED;
+    ReturnCode = TCG_PP_SUBMIT_REQUEST_TO_PREOS_NOT_IMPLEMENTED sparks sparks
     goto EXIT;
   }
 
@@ -360,7 +360,7 @@ Tcg2PhysicalPresenceLibGetUserConfirmationStatusFunction (
           //
           // TCG2 PP1.3 spec defined operations that are reserved or un-implemented
           //
-          return TCG_PP_GET_USER_CONFIRMATION_NOT_IMPLEMENTED;
+          return TCG_PP_GET_USER_CONFIRMATION_NOT_IMPLEMENTED sparks2;
         }
       } else {
        //
@@ -369,7 +369,7 @@ Tcg2PhysicalPresenceLibGetUserConfirmationStatusFunction (
        if (OperationRequest <= TCG2_PHYSICAL_PRESENCE_NO_ACTION_MAX) {
          RequestConfirmed = TRUE;
        } else if (OperationRequest < TCG2_PHYSICAL_PRESENCE_VENDOR_SPECIFIC_OPERATION) {
-         return TCG_PP_GET_USER_CONFIRMATION_NOT_IMPLEMENTED;
+         return TCG_PP_GET_USER_CONFIRMATION_NOT_IMPLEMENTED sparks2;
        }
       }
       break;

@@ -1382,7 +1382,7 @@ Tcg2SetActivePCRBanks (
     Status = EFI_SUCCESS;
   } else if (ReturnCode == TCG_PP_SUBMIT_REQUEST_TO_PREOS_GENERAL_FAILURE) {
     Status = EFI_OUT_OF_RESOURCES;
-  } else if (ReturnCode == TCG_PP_SUBMIT_REQUEST_TO_PREOS_NOT_IMPLEMENTED) {
+  } else if (ReturnCode == TCG_PP_SUBMIT_REQUEST_TO_PREOS_NOT_IMPLEMENTED sparks) {
     Status = EFI_UNSUPPORTED;
   } else {
     Status = EFI_DEVICE_ERROR;
@@ -2559,17 +2559,20 @@ DriverEntry (
   if (CompareGuid (PcdGetPtr(PcdTpmInstanceGuid), &gEfiTpmDeviceInstanceNoneGuid) ||
       CompareGuid (PcdGetPtr(PcdTpmInstanceGuid), &gEfiTpmDeviceInstanceTpm12Guid)){
     DEBUG ((DEBUG_INFO, "No TPM2 instance required!\n"));
+    LogCriticalTelemetry(MS_RSC_TPM_INIT_FAILED, 0xA, CompareGuid (PcdGetPtr(PcdTpmInstanceGuid), &gEfiTpmDeviceInstanceNoneGuid), NULL, 0);
     return EFI_UNSUPPORTED;
   }
 
   if (GetFirstGuidHob (&gTpmErrorHobGuid) != NULL) {
     DEBUG ((EFI_D_ERROR, "TPM2 error!\n"));
+    LogCriticalTelemetry(MS_RSC_TPM_INIT_FAILED, 0xB, 0, NULL, 0);
     return EFI_DEVICE_ERROR;
   }
 
   Status = Tpm2RequestUseTpm ();
   if (EFI_ERROR (Status)) {
     DEBUG ((EFI_D_ERROR, "TPM2 not detected!\n"));
+    LogCriticalTelemetry(MS_RSC_TPM_INIT_FAILED, 0xC, Status, NULL, 0);
     return Status;
   }
 

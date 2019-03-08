@@ -1221,7 +1221,7 @@ Tcg2PhysicalPresenceLibSubmitRequestToPreOSFunction (
 
   if ((OperationRequest > TCG2_PHYSICAL_PRESENCE_NO_ACTION_MAX) &&
       (OperationRequest < TCG2_PHYSICAL_PRESENCE_STORAGE_MANAGEMENT_BEGIN) ) {
-    return TCG_PP_SUBMIT_REQUEST_TO_PREOS_NOT_IMPLEMENTED;
+    return TCG_PP_SUBMIT_REQUEST_TO_PREOS_NOT_IMPLEMENTED sparks sparks
   }
 
   if ((PpData.PPRequest != OperationRequest) ||
