@@ -33,6 +33,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Library/Tcg2PpVendorLib.h>
 #include <Library/SmmServicesTableLib.h>
 
+#include <MsStatusCodes.h>
 #include <Library/MuTelemetryHelperLib.h>
 
 #define     PP_INF_VERSION_1_2    "1.2"
@@ -151,7 +152,8 @@ Tcg2PhysicalPresenceLibSubmitRequestToPreOSFunctionEx (
 
   if ((*OperationRequest > TCG2_PHYSICAL_PRESENCE_NO_ACTION_MAX) &&
       (*OperationRequest < TCG2_PHYSICAL_PRESENCE_STORAGE_MANAGEMENT_BEGIN) ) {
-    ReturnCode = TCG_PP_SUBMIT_REQUEST_TO_PREOS_NOT_IMPLEMENTED sparks sparks
+    LogCriticalTelemetryString(MS_RSC_TPM_NOT_SUPPORTED, 0x00000001, *OperationRequest, "PalindromeUefi.Tpm.BadAction");
+    ReturnCode = TCG_PP_SUBMIT_REQUEST_TO_PREOS_NOT_IMPLEMENTED;
     goto EXIT;
   }
 
@@ -362,7 +364,8 @@ Tcg2PhysicalPresenceLibGetUserConfirmationStatusFunction (
           //
           // TCG2 PP1.3 spec defined operations that are reserved or un-implemented
           //
-          return TCG_PP_GET_USER_CONFIRMATION_NOT_IMPLEMENTED sparks2;
+          LogCriticalTelemetryString(MS_RSC_TPM_NOT_SUPPORTED, 0x00000002, OperationRequest, "PalindromeUefi.Tpm.BadAction");
+          return TCG_PP_GET_USER_CONFIRMATION_NOT_IMPLEMENTED;
         }
       } else {
        //
@@ -371,7 +374,8 @@ Tcg2PhysicalPresenceLibGetUserConfirmationStatusFunction (
        if (OperationRequest <= TCG2_PHYSICAL_PRESENCE_NO_ACTION_MAX) {
          RequestConfirmed = TRUE;
        } else if (OperationRequest < TCG2_PHYSICAL_PRESENCE_VENDOR_SPECIFIC_OPERATION) {
-         return TCG_PP_GET_USER_CONFIRMATION_NOT_IMPLEMENTED sparks2;
+          LogCriticalTelemetryString(MS_RSC_TPM_NOT_SUPPORTED, 0x00000003, OperationRequest, "PalindromeUefi.Tpm.BadAction");
+          return TCG_PP_GET_USER_CONFIRMATION_NOT_IMPLEMENTED;
        }
       }
       break;
