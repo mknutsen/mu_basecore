@@ -46,14 +46,14 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 // and Submit TPM Request to Pre-OS Environment 2
 //
 #define TCG_PP_SUBMIT_REQUEST_TO_PREOS_SUCCESS                                  0
-#define TCG_PP_SUBMIT_REQUEST_TO_PREOS_NOT_IMPLEMENTED sparks                          1
+#define TCG_PP_SUBMIT_REQUEST_TO_PREOS_NOT_IMPLEMENTED                          1
 #define TCG_PP_SUBMIT_REQUEST_TO_PREOS_GENERAL_FAILURE                          2
 #define TCG_PP_SUBMIT_REQUEST_TO_PREOS_BLOCKED_BY_BIOS_SETTINGS                 3
 
 //
 // The return code for Get User Confirmation Status for Operation
 //
-#define TCG_PP_GET_USER_CONFIRMATION_NOT_IMPLEMENTED sparks2                                 0
+#define TCG_PP_GET_USER_CONFIRMATION_NOT_IMPLEMENTED                                 0
 #define TCG_PP_GET_USER_CONFIRMATION_BIOS_ONLY                                       1
 #define TCG_PP_GET_USER_CONFIRMATION_BLOCKED_BY_BIOS_CONFIGURATION                   2
 #define TCG_PP_GET_USER_CONFIRMATION_ALLOWED_AND_PPUSER_REQUIRED                     3

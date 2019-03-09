@@ -914,7 +914,7 @@ HiiSetBlockSidAction (
     Status = EFI_SUCCESS;
   } else if (ReturnCode == TCG_PP_SUBMIT_REQUEST_TO_PREOS_GENERAL_FAILURE) {
     Status = EFI_OUT_OF_RESOURCES;
-  } else if (ReturnCode == TCG_PP_SUBMIT_REQUEST_TO_PREOS_NOT_IMPLEMENTED sparks) {
+  } else if (ReturnCode == TCG_PP_SUBMIT_REQUEST_TO_PREOS_NOT_IMPLEMENTED) {
     Status = EFI_UNSUPPORTED;
   } else {
     Status = EFI_DEVICE_ERROR;
