@@ -39,6 +39,9 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Library/Tcg2PhysicalPresencePromptLib.h>    // MS_CHANGE
 #include <Library/Tcg2PpVendorLib.h>
 
+#include <MsStatusCodes.h>
+#include <Library/MuTelemetryHelperLib.h>
+
 #define CONFIRM_BUFFER_SIZE         4096
 
 EFI_HII_HANDLE mTcg2PpStringPackHandle;
@@ -1221,7 +1224,8 @@ Tcg2PhysicalPresenceLibSubmitRequestToPreOSFunction (
 
   if ((OperationRequest > TCG2_PHYSICAL_PRESENCE_NO_ACTION_MAX) &&
       (OperationRequest < TCG2_PHYSICAL_PRESENCE_STORAGE_MANAGEMENT_BEGIN) ) {
-    return TCG_PP_SUBMIT_REQUEST_TO_PREOS_NOT_IMPLEMENTED sparks sparks
+    LogCriticalTelemetryString(MS_RSC_TPM_NOT_SUPPORTED, 0x0000000A, OperationRequest, "PalindromeUefi.Tpm.BadAction");
+    return TCG_PP_SUBMIT_REQUEST_TO_PREOS_NOT_IMPLEMENTED;
   }
 
   if ((PpData.PPRequest != OperationRequest) ||

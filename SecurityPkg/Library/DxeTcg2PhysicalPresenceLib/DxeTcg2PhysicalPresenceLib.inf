@@ -41,6 +41,8 @@
   MdePkg/MdePkg.dec
   MdeModulePkg/MdeModulePkg.dec
   SecurityPkg/SecurityPkg.dec
+  MsSurfaceIntelPkg/MsSurfaceIntelPkg.dec   # PALINDROME TEMP - While waiting for MuTelemetryHelperLib to finalize location.
+  MsSurfaceCorePkg/MsSurfaceCorePkg.dec   # PALINDROME TEMP - While waiting for MuTelemetryHelperLib to finalize location.
 
 [LibraryClasses]
   MemoryAllocationLib
@@ -56,6 +58,7 @@
   Tpm2CommandLib
   Tcg2PpVendorLib
   Tcg2PhysicalPresencePromptLib       ## MS_CHANGE
+  MuTelemetryHelperLib
 
 [Protocols]
   gEfiTcg2ProtocolGuid                 ## SOMETIMES_CONSUMES

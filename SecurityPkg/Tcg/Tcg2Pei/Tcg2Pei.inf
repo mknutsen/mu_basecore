@@ -45,6 +45,7 @@
   MdeModulePkg/MdeModulePkg.dec
   SecurityPkg/SecurityPkg.dec
   SourceLevelDebugPkg/SourceLevelDebugPkg.dec   ## MS_CHANGE_?
+  MsSurfaceIntelPkg/MsSurfaceIntelPkg.dec   # PALINDROME TEMP - While waiting for MuTelemetryHelperLib to finalize location.
 
 [LibraryClasses]
   HobLib

@@ -15,6 +15,9 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Library/DebugLib.h>
 #include <Library/Tcg2PpVendorLib.h>
 
+#include <MsStatusCodes.h>
+#include <Library/MuTelemetryHelperLib.h>
+
 /**
   Check and execute the requested physical presence command.
 
@@ -102,8 +105,9 @@ Tcg2PpVendorLibSubmitRequestToPreOSFunction (
   IN UINT32                 RequestParameter
   )
 {
+  LogCriticalTelemetryString(MS_RSC_TPM_NOT_SUPPORTED, 0x00000018, OperationRequest, "PalindromeUefi.Tpm.NotImplemented");
   ASSERT (OperationRequest >= TCG2_PHYSICAL_PRESENCE_VENDOR_SPECIFIC_OPERATION);
-  return TCG_PP_SUBMIT_REQUEST_TO_PREOS_NOT_IMPLEMENTED sparks sparks
+  return TCG_PP_SUBMIT_REQUEST_TO_PREOS_NOT_IMPLEMENTED;
 }
 
 /**
@@ -128,6 +132,7 @@ Tcg2PpVendorLibGetUserConfirmationStatusFunction (
   IN UINT32                 ManagementFlags
   )
 {
+  LogCriticalTelemetryString(MS_RSC_TPM_NOT_SUPPORTED, 0x00000019, OperationRequest, "PalindromeUefi.Tpm.NotImplemented");
   ASSERT (OperationRequest >= TCG2_PHYSICAL_PRESENCE_VENDOR_SPECIFIC_OPERATION);
-  return TCG_PP_GET_USER_CONFIRMATION_NOT_IMPLEMENTED sparks2;
+  return TCG_PP_GET_USER_CONFIRMATION_NOT_IMPLEMENTED;
 }

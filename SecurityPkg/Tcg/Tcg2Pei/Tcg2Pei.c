@@ -55,6 +55,8 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 // MS_CHANGE_217204
 #include <Library/SourceDebugEnabledLib.h>
 
+#include <Library/MuTelemetryHelperLib.h>
+
 #define MSFT_SOURCE_DEBUG_ENABLED_STRING "Microsoft UEFI Source Debug Enabled"
 // END
 
@@ -1160,7 +1162,7 @@ Done:
       EFI_ERROR_CODE | EFI_ERROR_MINOR,
       (PcdGet32 (PcdStatusCodeSubClassTpmDevice) | EFI_P_EC_INTERFACE_ERROR)
       );
-    LogCriticalEvent((PcdGet32 (PcdStatusCodeSubClassTpmDevice) | EFI_P_EC_INTERFACE_ERROR));
+    LogCriticalEvent(PcdGet32 (PcdStatusCodeSubClassTpmDevice) | EFI_P_EC_INTERFACE_ERROR);
   }
   //
   // Always intall TpmInitializationDonePpi no matter success or fail.

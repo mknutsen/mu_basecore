@@ -50,6 +50,8 @@
   MdeModulePkg/MdeModulePkg.dec
   SecurityPkg/SecurityPkg.dec
   CryptoPkg/CryptoPkg.dec
+  MsSurfaceIntelPkg/MsSurfaceIntelPkg.dec   # PALINDROME TEMP - While waiting for MuTelemetryHelperLib to finalize location.
+  MsSurfaceCorePkg/MsSurfaceCorePkg.dec   # PALINDROME TEMP - While waiting for MuTelemetryHelperLib to finalize location.
 
 [LibraryClasses]
   MemoryAllocationLib
@@ -74,6 +76,7 @@
   OemTpm2InitLib
 ## MSChange [END]
   PcdLib  #mschange - missing
+  MuTelemetryHelperLib
 
 [Guids]
   ## SOMETIMES_CONSUMES     ## Variable:L"SecureBoot"

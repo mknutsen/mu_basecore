@@ -41,6 +41,7 @@
   MdeModulePkg/MdeModulePkg.dec
   SecurityPkg/SecurityPkg.dec
   MsSurfaceIntelPkg/MsSurfaceIntelPkg.dec   # PALINDROME TEMP - While waiting for MuTelemetryHelperLib to finalize location.
+  MsSurfaceCorePkg/MsSurfaceCorePkg.dec   # PALINDROME TEMP - While waiting for MuTelemetryHelperLib to finalize location.
 
 [LibraryClasses]
   DebugLib
