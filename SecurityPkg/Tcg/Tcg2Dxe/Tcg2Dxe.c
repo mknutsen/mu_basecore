@@ -32,6 +32,7 @@ WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 #include <Protocol/Tcg2Protocol.h>
 #include <Protocol/TrEEProtocol.h>
 #include <Protocol/ResetNotification.h>
+#include <Protocol/PlatformFirmwareBlobPrehash.h>
 
 #include <Library/DebugLib.h>
 #include <Library/BaseMemoryLib.h>
@@ -1729,6 +1730,113 @@ SetupEventLog (
   return Status;
 }
 
+// MS_CHANGE start
+VOID
+ProcessPrehashedPlatformFirmwareBlobs (
+  VOID
+  )
+{
+  EFI_STATUS                               Status;
+  EFI_HANDLE                               *Handles;
+  UINTN                                    HandleCount = 0;
+  UINT8                                    Index;
+  UINT8                                    HashIndex;
+  PLATFORM_FIRMWARE_BLOB_PREHASH_PROTOCOL *PlatformFwBlobPrehashProtocol;
+  PLATFORM_FIRMWARE_BLOB_HASH_INFO        *PlatformFwBlobHashInfo;
+  TPML_DIGEST_VALUES                       DigestList;
+  TCG_PCR_EVENT_HDR                        NewEventHdr;
+  UINT8                                    *NewEventData;
+
+  // locate the list of handles associated with the protocol guid
+  // for each handle do PCR extend and log event
+  Status = gBS->LocateHandleBuffer(
+        ByProtocol,
+        &gPlatformFirmwareBlobPrehashProtocolGuid,
+        NULL,
+        &HandleCount,
+        &Handles
+        );
+
+  if (EFI_ERROR(Status) || HandleCount == 0) {
+    return;
+  }
+
+  for (Index = 0; Index < HandleCount; Index++) {
+    Status = gBS->HandleProtocol (Handles[Index],
+                                  &gPlatformFirmwareBlobPrehashProtocolGuid,
+                                  (VOID **)&PlatformFwBlobPrehashProtocol);
+
+    PlatformFwBlobHashInfo = (PLATFORM_FIRMWARE_BLOB_HASH_INFO *) (((UINT8 *) PlatformFwBlobPrehashProtocol) +
+                                                                   sizeof(PLATFORM_FIRMWARE_BLOB_PREHASH_PROTOCOL));\
+    // TODO: validate digest count - can't be more than 5
+    DigestList.count = PlatformFwBlobPrehashProtocol->Count;
+    //
+    // For each hash, create a digest
+    //
+    for (HashIndex = 0; HashIndex < DigestList.count; HashIndex++) {
+
+      // typedef union {
+      //   BYTE sha1[SHA1_DIGEST_SIZE];
+      //   BYTE sha256[SHA256_DIGEST_SIZE];
+      //   BYTE sm3_256[SM3_256_DIGEST_SIZE];
+      //   BYTE sha384[SHA384_DIGEST_SIZE];
+      //   BYTE sha512[SHA512_DIGEST_SIZE];
+      // } TPMU_HA;
+
+      // typedef struct {
+      //   TPMI_ALG_HASH hashAlg;
+      //   TPMU_HA       digest;
+      // } TPMT_HA;
+
+      // typedef struct {
+      //   UINT32  count;
+      //   TPMT_HA digests[HASH_COUNT];
+      // } TPML_DIGEST_VALUES;
+
+      DigestList.digests[HashIndex].hashAlg = PlatformFwBlobHashInfo->HashAlgoId;
+      CopyMem (&DigestList.digests[HashIndex].digest, ((UINT8 *) PlatformFwBlobHashInfo) + sizeof(PLATFORM_FIRMWARE_BLOB_HASH_INFO), PlatformFwBlobHashInfo->HashSize);
+      // move the pointer to the next PLATFORM_FIRMWARE_BLOB_HASH_INFO
+      PlatformFwBlobHashInfo = (PLATFORM_FIRMWARE_BLOB_HASH_INFO *) (((UINT8 *) PlatformFwBlobPrehashProtocol) +
+                                                                     sizeof(PLATFORM_FIRMWARE_BLOB_PREHASH_PROTOCOL) +
+                                                                     PlatformFwBlobHashInfo->HashSize);
+    }
+
+    //
+    // Extend PCR 0
+    //
+    Tpm2PcrExtend (0, &DigestList);
+
+    //
+    // Craft an event header and copy event data into a new pool
+    //
+    // typedef struct tdTCG_PCR_EVENT_HDR {
+    //   TCG_PCRINDEX                      PCRIndex;
+    //   TCG_EVENTTYPE                     EventType;
+    //   TCG_DIGEST                        Digest;
+    //   UINT32                            EventSize;
+    // } TCG_PCR_EVENT_HDR;
+
+    NewEventHdr.PCRIndex  = 0;
+    NewEventHdr.EventType = EV_EFI_PLATFORM_FIRMWARE_BLOB;
+    NewEventHdr.EventSize = sizeof(PlatformFwBlobPrehashProtocol->FwBlobBase) + sizeof(PlatformFwBlobPrehashProtocol->FwBlobLength);
+    // The Digest field gets populated in TcgDxeLogHashEvent
+
+    // event data will contain only base and size of fw blobs, i.e. upper two fields worth of the protocol struct
+    NewEventData = AllocatePool(NewEventHdr.EventSize);
+    CopyMem (NewEventData, PlatformFwBlobPrehashProtocol, NewEventHdr.EventSize);
+
+    // TcgDxeLogHashEvent (
+    //  IN TPML_DIGEST_VALUES             *DigestList,
+    //  IN OUT  TCG_PCR_EVENT_HDR         *NewEventHdr,
+    //  IN      UINT8                     *NewEventData
+    //  )
+    TcgDxeLogHashEvent (&DigestList, &NewEventHdr, NewEventData);
+
+    FreePool(NewEventData);
+  }
+}
+// MS_CHANGE end
+
 /**
   Measure and log an action string, and extend the measurement result into PCR[PCRIndex].
 
@@ -2675,6 +2783,11 @@ DriverEntry (
     ASSERT_EFI_ERROR (Status);
 
     //
+    // MS_CHANGE: Process pre-hashed platform firmware blob protocols
+    //
+    ProcessPrehashedPlatformFirmwareBlobs();
+
+    //
     // Measure handoff tables, Boot#### variables etc.
     //
     Status = EfiCreateEventReadyToBootEx (
@@ -2686,7 +2799,7 @@ DriverEntry (
 
     Status = gBS->CreateEventEx (
                     EVT_NOTIFY_SIGNAL,
-                    TPL_NOTIFY,
+                    TPL_CALLBACK, // MS_CHANGE
                     OnExitBootServices,
                     NULL,
                     &gEfiEventExitBootServicesGuid,

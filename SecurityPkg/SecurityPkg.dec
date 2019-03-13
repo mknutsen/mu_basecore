@@ -209,6 +209,11 @@
   ## Include/OpalPasswordExtraInfoVariable.h
   gOpalExtraInfoVariableGuid =  {0x44a2ad5d, 0x612c, 0x47b3, {0xb0, 0x6e, 0xc8, 0xf5, 0x0b, 0xfb, 0xf0, 0x7d}}
 
+# MS_CHANGE start
+[Protocols]
+  ## Include/Protocol/PlatformFirmwareBlobPrehash.h
+  gPlatformFirmwareBlobPrehashProtocolGuid  = { 0x2B769EE0, 0x3381, 0x4E9C, { 0xBB, 0x21, 0x39, 0x58, 0x1A, 0xC6, 0xD6, 0x23 } }
+# MS_CHANGE end
 
 [Ppis]
   ## The PPI GUID for that TPM physical presence should be locked.
