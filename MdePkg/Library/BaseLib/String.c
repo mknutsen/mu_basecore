@@ -1814,6 +1814,7 @@ STATIC UINT8 decoding_table[] = {
  *                    RETURN_BUFFER_TOO_SMALL    asciiSize too small - asciiize set to required size
  */
 RETURN_STATUS
+EFIAPI
 Base64Encode (
   IN  CONST UINT8  *dataPtr,
   IN        UINTN   dataLen,
