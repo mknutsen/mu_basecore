@@ -813,7 +813,7 @@ IN BOOLEAN *UpdateCapsules
 
   if (UpdateCapsules == NULL)
   {
-    DEBUG((DEBUG_ERROR, __FUNCTION__ " Invalid parameters.  Inputs can't be NULL\n"));
+    DEBUG((DEBUG_ERROR, "%a Invalid parameters.  Inputs can't be NULL\n", __FUNCTION__));
     ASSERT(UpdateCapsules != NULL);
     return EFI_INVALID_PARAMETER;
   }
@@ -885,7 +885,7 @@ GetScatterGatherHeadEntries(
 
   if ((ListLength == NULL) || (HeadList == NULL))
   {
-    DEBUG((DEBUG_ERROR, __FUNCTION__ " Invalid parameters.  Inputs can't be NULL\n"));
+    DEBUG((DEBUG_ERROR, "%a Invalid parameters.  Inputs can't be NULL\n", __FUNCTION__));
     ASSERT(ListLength != NULL);
     ASSERT(HeadList != NULL);
     return EFI_INVALID_PARAMETER;
@@ -931,7 +931,7 @@ GetScatterGatherHeadEntries(
       {
         DEBUG((DEBUG_ERROR, "Unexpected error getting Capsule Update variable.  Status = %r\n"));
       }
-      //stop processing once we hit error or not found 
+      //stop processing once we hit error or not found
       break;
     }
 
@@ -939,9 +939,9 @@ GetScatterGatherHeadEntries(
     // If this BlockList has been linked before, skip this variable
     //
     Flag = FALSE;
-    for (TempIndex = 0; TempIndex < ValidIndex; TempIndex++) 
+    for (TempIndex = 0; TempIndex < ValidIndex; TempIndex++)
     {
-      if (TempList[TempIndex] == CapsuleDataPtr64) 
+      if (TempList[TempIndex] == CapsuleDataPtr64)
       {
         Flag = TRUE;
         break;
@@ -958,10 +958,10 @@ GetScatterGatherHeadEntries(
     Index++;
   } //end of while for update capsules
 
-    //done getting all SG list 
+    //done getting all SG list
   if (ValidIndex == 0)
   {
-    DEBUG((DEBUG_ERROR, __FUNCTION__ " didn't find any SG lists in variables\n"));
+    DEBUG((DEBUG_ERROR, "%a didn't find any SG lists in variables\n", __FUNCTION__));
     return EFI_NOT_FOUND;
   }
 
@@ -973,7 +973,7 @@ GetScatterGatherHeadEntries(
   }
 
   CopyMem(*HeadList, TempList, (ValidIndex) * sizeof(EFI_PHYSICAL_ADDRESS));
-  *ListLength = ValidIndex;  
+  *ListLength = ValidIndex;
 
   return EFI_SUCCESS;
 }
@@ -1011,7 +1011,7 @@ CapsuleCoalesce (
 {
   EFI_STATUS                           Status;
   EFI_BOOT_MODE                        BootMode;
-  UINTN                                ListLength; 
+  UINTN                                ListLength;
   EFI_PHYSICAL_ADDRESS                 *VariableArrayAddress;
   MEMORY_RESOURCE_DESCRIPTOR           *MemoryResource;
 #ifdef MDE_CPU_IA32
@@ -1039,7 +1039,7 @@ CapsuleCoalesce (
   Status = GetScatterGatherHeadEntries(&ListLength, &VariableArrayAddress);
   if (EFI_ERROR(Status))
   {
-    DEBUG((DEBUG_ERROR, __FUNCTION__ " failed to get Scatter Gather List Head Entries.  Status = %r\n", Status));
+    DEBUG((DEBUG_ERROR, "%a failed to get Scatter Gather List Head Entries.  Status = %r\n", __FUNCTION__, Status));
     goto Done;
   }
 
@@ -1128,10 +1128,10 @@ CheckCapsuleUpdate (
   {
     if (Update) {
       Status = EFI_SUCCESS;
-    } 
+    }
     else
     {
-      Status = EFI_NOT_FOUND;  
+      Status = EFI_NOT_FOUND;
     }
   }
 // MSCHANGE [END?]
