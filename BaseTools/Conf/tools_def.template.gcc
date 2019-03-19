@@ -1,4 +1,4 @@
-#
+##
 #  Copyright (c) 2006 - 2018, Intel Corporation. All rights reserved.<BR>
 #  Portions copyright (c) 2008 - 2009, Apple Inc. All rights reserved.<BR>
 #  Portions copyright (c) 2011 - 2014, ARM Ltd. All rights reserved.<BR>
@@ -36,13 +36,13 @@
 
 #!VERSION=2.00
 
-
 IDENTIFIER = Default TOOL_CHAIN_CONF
 
 DEFINE GCC49_IA32_PREFIX       = ENV(GCC49_BIN)
 DEFINE GCC49_X64_PREFIX        = ENV(GCC49_BIN)
 
-# Let's understand what this does...
+DEFINE GCC5_IA32_PREFIX        = ENV(GCC5_BIN)
+DEFINE GCC5_X64_PREFIX         = ENV(GCC5_BIN)
 DEFINE GCC_HOST_PREFIX         = ENV(GCC_HOST_BIN)
 
 DEFINE UNIX_IASL_BIN           = ENV(IASL_PREFIX)iasl
@@ -190,7 +190,7 @@ DEFINE GCC_ARM_CC_XIPFLAGS         = -mno-unaligned-access
 DEFINE GCC_AARCH64_CC_FLAGS        = DEF(GCC_ALL_CC_FLAGS) -mlittle-endian -fno-short-enums -fverbose-asm -funsigned-char  -ffunction-sections -fdata-sections -Wno-address -fno-asynchronous-unwind-tables -fno-unwind-tables -fno-pic -fno-pie -ffixed-x18
 DEFINE GCC_AARCH64_CC_XIPFLAGS     = -mstrict-align -mgeneral-regs-only
 DEFINE GCC_DLINK_FLAGS_COMMON      = -nostdlib --pie
-DEFINE GCC_DLINK2_FLAGS_COMMON     = -Wl,--script=$(BASE_TOOLS_PATH)/Scripts/GccBase.lds # MU_CHANGE
+DEFINE GCC_DLINK2_FLAGS_COMMON     = -Wl,--script=$(BASE_TOOLS_PATH)/Scripts/GccBase.lds
 DEFINE GCC_IA32_X64_DLINK_COMMON   = DEF(GCC_DLINK_FLAGS_COMMON) --gc-sections
 DEFINE GCC_ARM_AARCH64_DLINK_COMMON= -Wl,--emit-relocs -nostdlib -Wl,--gc-sections -u $(IMAGE_ENTRY_POINT) -Wl,-e,$(IMAGE_ENTRY_POINT),-Map,$(DEST_DIR_DEBUG)/$(BASE_NAME).map
 DEFINE GCC_ARM_DLINK_FLAGS         = DEF(GCC_ARM_AARCH64_DLINK_COMMON) -z common-page-size=0x20
@@ -296,7 +296,7 @@ DEFINE GCC48_AARCH64_ASLDLINK_FLAGS  = DEF(GCC47_AARCH64_ASLDLINK_FLAGS)
 DEFINE GCC49_IA32_CC_FLAGS           = DEF(GCC48_IA32_CC_FLAGS)
 DEFINE GCC49_X64_CC_FLAGS            = DEF(GCC48_X64_CC_FLAGS)
 DEFINE GCC49_IA32_X64_DLINK_COMMON   = -nostdlib -Wl,-n,-q,--gc-sections -z common-page-size=0x40
-DEFINE GCC49_IA32_X64_ASLDLINK_FLAGS = DEF(GCC49_IA32_X64_DLINK_COMMON) -Wl,--entry,ReferenceAcpiTable -u ReferenceAcpiTable
+DEFINE GCC49_IA32_X64_ASLDLINK_FLAGS = DEF(GCC49_IA32_X64_DLINK_COMMON) -Wl,--defsym=PECOFF_HEADER_SIZE=0 DEF(GCC_DLINK2_FLAGS_COMMON) -Wl,--entry,ReferenceAcpiTable -u ReferenceAcpiTable
 DEFINE GCC49_IA32_X64_DLINK_FLAGS    = DEF(GCC49_IA32_X64_DLINK_COMMON) -Wl,--entry,$(IMAGE_ENTRY_POINT) -u $(IMAGE_ENTRY_POINT) -Wl,-Map,$(DEST_DIR_DEBUG)/$(BASE_NAME).map,--whole-archive
 DEFINE GCC49_IA32_DLINK2_FLAGS       = DEF(GCC48_IA32_DLINK2_FLAGS)
 DEFINE GCC49_X64_DLINK_FLAGS         = DEF(GCC49_IA32_X64_DLINK_FLAGS) -Wl,-melf_x86_64,--oformat=elf64-x86-64,-pie
@@ -505,17 +505,17 @@ RELEASE_GCC49_AARCH64_DLINK_FLAGS  = DEF(GCC49_AARCH64_DLINK_FLAGS)
 ##################
 # GCC5 IA32 definitions
 ##################
-*_GCC5_IA32_OBJCOPY_PATH         = ENV(GCC5_IA32_PREFIX)objcopy
-*_GCC5_IA32_CC_PATH              = ENV(GCC5_IA32_PREFIX)gcc
-*_GCC5_IA32_SLINK_PATH           = ENV(GCC5_IA32_PREFIX)gcc-ar
-*_GCC5_IA32_DLINK_PATH           = ENV(GCC5_IA32_PREFIX)gcc
-*_GCC5_IA32_ASLDLINK_PATH        = ENV(GCC5_IA32_PREFIX)gcc
-*_GCC5_IA32_ASM_PATH             = ENV(GCC5_IA32_PREFIX)gcc
-*_GCC5_IA32_PP_PATH              = ENV(GCC5_IA32_PREFIX)gcc
-*_GCC5_IA32_VFRPP_PATH           = ENV(GCC5_IA32_PREFIX)gcc
-*_GCC5_IA32_ASLCC_PATH           = ENV(GCC5_IA32_PREFIX)gcc
-*_GCC5_IA32_ASLPP_PATH           = ENV(GCC5_IA32_PREFIX)gcc
-*_GCC5_IA32_RC_PATH              = ENV(GCC5_IA32_PREFIX)objcopy
+*_GCC5_IA32_OBJCOPY_PATH         = DEF(GCC5_IA32_PREFIX)objcopy
+*_GCC5_IA32_CC_PATH              = DEF(GCC5_IA32_PREFIX)gcc
+*_GCC5_IA32_SLINK_PATH           = DEF(GCC5_IA32_PREFIX)gcc-ar
+*_GCC5_IA32_DLINK_PATH           = DEF(GCC5_IA32_PREFIX)gcc
+*_GCC5_IA32_ASLDLINK_PATH        = DEF(GCC5_IA32_PREFIX)gcc
+*_GCC5_IA32_ASM_PATH             = DEF(GCC5_IA32_PREFIX)gcc
+*_GCC5_IA32_PP_PATH              = DEF(GCC5_IA32_PREFIX)gcc
+*_GCC5_IA32_VFRPP_PATH           = DEF(GCC5_IA32_PREFIX)gcc
+*_GCC5_IA32_ASLCC_PATH           = DEF(GCC5_IA32_PREFIX)gcc
+*_GCC5_IA32_ASLPP_PATH           = DEF(GCC5_IA32_PREFIX)gcc
+*_GCC5_IA32_RC_PATH              = DEF(GCC5_IA32_PREFIX)objcopy
 
 *_GCC5_IA32_ASLCC_FLAGS          = DEF(GCC_ASLCC_FLAGS) -m32 -fno-lto
 *_GCC5_IA32_ASLDLINK_FLAGS       = DEF(GCC5_IA32_X64_ASLDLINK_FLAGS) -Wl,-m,elf_i386 -no-pie
@@ -537,17 +537,17 @@ RELEASE_GCC5_IA32_DLINK_FLAGS    = DEF(GCC5_IA32_X64_DLINK_FLAGS) -flto -Os -Wl,
 ##################
 # GCC5 X64 definitions
 ##################
-*_GCC5_X64_OBJCOPY_PATH          = ENV(GCC5_X64_PREFIX)objcopy
-*_GCC5_X64_CC_PATH               = ENV(GCC5_X64_PREFIX)gcc
-*_GCC5_X64_SLINK_PATH            = ENV(GCC5_X64_PREFIX)gcc-ar
-*_GCC5_X64_DLINK_PATH            = ENV(GCC5_X64_PREFIX)gcc
-*_GCC5_X64_ASLDLINK_PATH         = ENV(GCC5_X64_PREFIX)gcc
-*_GCC5_X64_ASM_PATH              = ENV(GCC5_X64_PREFIX)gcc
-*_GCC5_X64_PP_PATH               = ENV(GCC5_X64_PREFIX)gcc
-*_GCC5_X64_VFRPP_PATH            = ENV(GCC5_X64_PREFIX)gcc
-*_GCC5_X64_ASLCC_PATH            = ENV(GCC5_X64_PREFIX)gcc
-*_GCC5_X64_ASLPP_PATH            = ENV(GCC5_X64_PREFIX)gcc
-*_GCC5_X64_RC_PATH               = ENV(GCC5_X64_PREFIX)objcopy
+*_GCC5_X64_OBJCOPY_PATH          = DEF(GCC5_X64_PREFIX)objcopy
+*_GCC5_X64_CC_PATH               = DEF(GCC5_X64_PREFIX)gcc
+*_GCC5_X64_SLINK_PATH            = DEF(GCC5_X64_PREFIX)gcc-ar
+*_GCC5_X64_DLINK_PATH            = DEF(GCC5_X64_PREFIX)gcc
+*_GCC5_X64_ASLDLINK_PATH         = DEF(GCC5_X64_PREFIX)gcc
+*_GCC5_X64_ASM_PATH              = DEF(GCC5_X64_PREFIX)gcc
+*_GCC5_X64_PP_PATH               = DEF(GCC5_X64_PREFIX)gcc
+*_GCC5_X64_VFRPP_PATH            = DEF(GCC5_X64_PREFIX)gcc
+*_GCC5_X64_ASLCC_PATH            = DEF(GCC5_X64_PREFIX)gcc
+*_GCC5_X64_ASLPP_PATH            = DEF(GCC5_X64_PREFIX)gcc
+*_GCC5_X64_RC_PATH               = DEF(GCC5_X64_PREFIX)objcopy
 
 *_GCC5_X64_ASLCC_FLAGS           = DEF(GCC_ASLCC_FLAGS) -m64 -fno-lto
 *_GCC5_X64_ASLDLINK_FLAGS        = DEF(GCC5_IA32_X64_ASLDLINK_FLAGS) -Wl,-m,elf_x86_64
@@ -637,10 +637,10 @@ RELEASE_GCC5_AARCH64_DLINK_FLAGS = DEF(GCC5_AARCH64_DLINK_FLAGS) -flto -Os -L$(W
   NOOPT_GCC5_AARCH64_DLINK_FLAGS = DEF(GCC5_AARCH64_DLINK_FLAGS) -z common-page-size=0x1000 -O0
   NOOPT_GCC5_AARCH64_DLINK_XIPFLAGS = -z common-page-size=0x20 -O0
 
+
 #################
 # ASM 16 linker defintions
 #################
-#*_*_*_ASMLINK_PATH                 = DEF(WINDDK_BIN16)\link16.exe
 *_*_*_ASMLINK_FLAGS                = /nologo /tiny
 
 ##################
